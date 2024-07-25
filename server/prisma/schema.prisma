@@ -1,0 +1,150 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users{
+  user_id Int @id @default(autoincrement())
+  name String  
+  email String @unique
+  password String?
+  profile_url String?
+  isGoogleAuth Boolean @default(false)
+  isBuyer Boolean @default(true)
+  isSeller Boolean @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  reviews Reviews[]
+  sellers Sellers? 
+  orders Orders[]
+  cart Carts?
+  addresses UserAddresses[]
+  @@index([email]) // Adds an index on the username field
+}
+
+model Sellers{
+  seller_id Int @id @default(autoincrement())
+  seller_name String
+  seller_logo_url String?
+  seller_address String
+  seller_contact_number String @db.VarChar(10)
+  seller_url String?
+  seller_email String 
+  seller_bio String?
+  seller_description String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  user_id Int @unique
+  user Users @relation(fields: [user_id], references: [user_id])
+  products Products[]
+}
+
+model UserAddresses{
+user_address_id Int @id @default(autoincrement())
+street String
+village String
+taluk String
+district String
+state String
+contact_number String
+pin_code String
+user_id Int
+order Orders[]
+user Users @relation(fields: [user_id],references: [user_id])
+}
+
+model Products{
+  product_id Int @id @default(autoincrement())
+  name String
+  slug String @unique
+  sub_name String?
+  price Float
+  description String
+  stock Int
+  category String
+  seller_id Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  seller Sellers @relation(fields: [seller_id], references: [seller_id])
+  review Reviews[]
+  order Orders[]
+  cart CartItems[]
+  product_images ProductImages[]
+
+  @@index([slug])
+}
+
+model ProductImages{
+  image_id Int @id @default(autoincrement())
+  image_url String
+  product_id Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  product Products @relation(fields: [product_id], references: [product_id])
+
+}
+//TODO implement the custom constraint for the star will probably keep server side logic for this now
+model Reviews{
+  review_id Int @id @default(autoincrement())
+  review String
+  star Int 
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  product_id Int
+  user_id Int 
+  product Products @relation(fields: [product_id], references: [product_id])
+  user Users @relation(fields: [user_id], references: [user_id])
+  @@unique([user_id,product_id])
+}
+
+
+
+//TODO tags for efficient filtering have to implement complex reltaionship
+
+model Orders{
+  order_id Int @id @default(autoincrement())
+  product_id Int
+  user_id Int
+  user_address_id Int 
+  quantity Int
+  total Int
+  delivery_status Boolean @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  address UserAddresses @relation(fields: [user_address_id],references: [user_address_id])
+  product Products @relation(fields: [product_id], references: [product_id])
+  user Users @relation(fields: [user_id],references: [user_id])
+
+  }
+
+model Carts{
+  cart_id Int @id @default(autoincrement())
+  user_id Int @unique
+  items CartItems[] 
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  user Users @relation(fields: [user_id],references: [user_id])
+  }
+
+
+model CartItems{
+  cart_item_id Int @id @default(autoincrement())
+  cart_id Int 
+  product_id Int
+  quantity Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  product Products @relation(fields: [product_id],references: [product_id])
+  cart Carts @relation(fields: [cart_id],references: [cart_id])
+  @@unique([product_id,cart_id])
+}

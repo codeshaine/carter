@@ -1,0 +1,62 @@
+import prismaClient from "../../clients/prismaClient.js";
+import {
+  ApiError,
+  ApiResponse,
+  validateSellerBody,
+} from "../../services/index.js";
+
+export async function handleSellerSignup(req, res) {
+  const user = req.user;
+  //TODO remove
+  if (user.isSeller) {
+    throw new ApiError(409, "Already a seller");
+  }
+
+  //TODO write the validation using zod
+  const sellerData = req.body;
+
+  const validate = validateSellerBody(req.body);
+  if (!validate.success) {
+    throw new ApiError(400, "invalid seller data", validate.error);
+  }
+
+  try {
+    await prismaClient.$transaction(async (tx) => {
+      // Code running in a transaction...
+      const seller = await tx.sellers.create({
+        data: {
+          seller_name: sellerData.name,
+          seller_logo_url: sellerData.logoUrl,
+          seller_address: sellerData.sellerAddress,
+          seller_contact_number: sellerData.contactNumber,
+          seller_url: sellerData.sellerUrl || "",
+          seller_email: sellerData.sellerEmail || user.email,
+          seller_bio: sellerData.bio || "",
+          seller_description: sellerData.description || "",
+          user_id: user.user_id,
+        },
+      });
+
+      if (!seller) {
+        throw new ApiError(500, "seller not created");
+      }
+      await tx.users.update({
+        where: {
+          user_id: user.user_id,
+        },
+        data: {
+          isSeller: true,
+        },
+      });
+
+      return res
+        .status(201)
+        .json(new ApiResponse(201, "seller created", seller));
+    });
+  } catch (err) {
+    console.log("Prisma errro in seller auth", err);
+    throw new ApiError(500, err.message || "seller not created", err.stack);
+  } finally {
+    await prismaClient.$disconnect();
+  }
+}
