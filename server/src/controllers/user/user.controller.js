@@ -12,8 +12,46 @@ import redisClient from "../../clients/redisCleint.js";
 import { validateUserAddress } from "../../services/zod/userAddress.js";
 import cloudinary from "../../services/cloudinary/config.js";
 
+export async function handleGetUserInfo(req, res) {
+  const CACHE_KEY = "user_details" + req.user.user_id;
+  //TODO adjust
+  const CACHE_EXPIRATION = 5;
+  const cachedData = await redisClient.get(CACHE_KEY);
+  if (cachedData) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "user details", JSON.parse(cachedData)));
+  }
+
+  try {
+    const userDetails = await prismaClient.users.findFirst({
+      where: {
+        user_id: req.user.user_id,
+      },
+      select: {
+        name: true,
+        email: true,
+        profile_url: true,
+        // addresses: true,
+      },
+    });
+    if (!userDetails) {
+      throw new ApiError(500, "User Not found");
+    }
+
+    redisClient.setex(CACHE_KEY, CACHE_EXPIRATION, JSON.stringify(userDetails));
+    res.status(200).json(new ApiResponse(200, "User Details", userDetails));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof ApiError) {
+      throw new ApiError(err.statuscode, err.message, err);
+    }
+
+    throw new ApiError(500, "Internal Server Error", err);
+  }
+}
+
 export async function handleUpdateUser(req, res) {
-  console.log(req.file);
   const validate = validateUpdateUserProfile(req.body);
   if (!validate.success) {
     throw new ApiError(400, "Invalid type of input", validate.error);

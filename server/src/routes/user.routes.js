@@ -16,6 +16,7 @@ import {
   handleDeleteUserAddress,
   handleGetOrders,
   handleGetUserAddress,
+  handleGetUserInfo,
   handleOrderNow,
   handlePushReview,
   handleUpdateUser,
@@ -23,8 +24,7 @@ import {
 import { upload } from "../services/multer/storage.js";
 const userRouter = express.Router();
 
-userRouter.post("upload", (req, res) => {});
-
+userRouter.get("/", isAuthenticated, handler(handleGetUserInfo));
 userRouter.post("/signup", handler(signUp));
 userRouter.post("/signin", handler(signIn));
 userRouter.get("/logout", handler(signOut));

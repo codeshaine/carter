@@ -7,6 +7,7 @@ import {
   handleDeleteProduct,
   handleDeliveryDone,
   handleGetAllSellerProducts,
+  handleGetSellerDetails,
   handleOrderedSellerItems,
   handleUpdateProduct,
   handleUpdateSellerProfile,
@@ -15,18 +16,27 @@ import {
 import { upload } from "../services/multer/storage.js";
 const sellerRoutes = express.Router();
 // TODO just look into the seller reatled code and cross check everyting works fine
+sellerRoutes.get(
+  "/",
+  isAuthenticated,
+  isSeller,
+  handler(handleGetSellerDetails)
+);
 sellerRoutes.post("/signup", isAuthenticated, handler(handleSellerSignup));
+
 sellerRoutes.post(
   "/profile/update",
   isAuthenticated,
   isSeller,
+  upload.single("image"),
   handler(handleUpdateSellerProfile)
 );
 sellerRoutes.post(
   "/product/new",
   isAuthenticated,
   isSeller,
-  upload.array("images", 3),
+  // upload.array("images", 3),
+  upload.single("images"),
   handler(handleUploadNewProduct)
 );
 

@@ -26,7 +26,7 @@ async function signUp(req, res) {
     });
     req.session.user = user.user_id;
     delete user["password"];
-    return res.status(201).json(new ApiResponse(201, "created", user));
+    return res.status(201).json(new ApiResponse(201, "Account created", user));
   } catch (err) {
     if (err.code === "P2002" && err.meta && err.meta.target.includes("email")) {
       throw new ApiError(409, "email already taken", err);
@@ -71,7 +71,9 @@ async function signOut(req, res) {
   try {
     !req.user && req.session.destroy();
     req.user && req.logout((err) => console.log(err));
-    return res.status(200).json(new ApiResponse(200, "logged out"));
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "logged out successfully"));
   } catch (err) {
     throw new ApiError(500, "Erroc occured during logout", err.stack);
   }

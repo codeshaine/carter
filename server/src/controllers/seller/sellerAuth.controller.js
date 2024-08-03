@@ -14,8 +14,7 @@ export async function handleSellerSignup(req, res) {
 
   //TODO write the validation using zod
   const sellerData = req.body;
-
-  const validate = validateSellerBody(req.body);
+  const validate = validateSellerBody(sellerData);
   if (!validate.success) {
     throw new ApiError(400, "invalid seller data", validate.error);
   }
@@ -26,13 +25,9 @@ export async function handleSellerSignup(req, res) {
       const seller = await tx.sellers.create({
         data: {
           seller_name: sellerData.name,
-          seller_logo_url: sellerData.logoUrl,
           seller_address: sellerData.sellerAddress,
           seller_contact_number: sellerData.contactNumber,
-          seller_url: sellerData.sellerUrl || "",
           seller_email: sellerData.sellerEmail || user.email,
-          seller_bio: sellerData.bio || "",
-          seller_description: sellerData.description || "",
           user_id: user.user_id,
         },
       });

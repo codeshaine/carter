@@ -12,36 +12,139 @@ import {
 import cloudinary from "../../services/cloudinary/config.js";
 import fs from "fs/promises";
 
+export async function handleGetSellerDetails(req, res) {
+  const CACHE_KEY = "seller_details" + req.seller.seller_id;
+  const CACHE_EXPIRATION = 5;
+  const cachedData = await redisClient.get(CACHE_KEY);
+  if (cachedData) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "seller details", JSON.parse(cachedData)));
+  }
+
+  try {
+    const sellerDetails = await prismaClient.sellers.findFirst({
+      where: {
+        seller_id: req.seller.seller_id,
+      },
+      select: {
+        seller_name: true,
+        seller_logo_url: true,
+        seller_address: true,
+        seller_contact_number: true,
+        seller_url: true,
+        seller_email: true,
+        seller_bio: true,
+        seller_description: true,
+      },
+    });
+    if (!sellerDetails) {
+      throw new ApiError(400, "No Seller Exist");
+    }
+    redisClient.setex(
+      CACHE_KEY,
+      CACHE_EXPIRATION,
+      JSON.stringify(sellerDetails)
+    );
+    res.status(200).json(new ApiResponse(200, "success", sellerDetails));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof ApiError) {
+      throw new ApiError(err.statuscode, err.message, err);
+    }
+    throw new ApiError(500, "Server Error while fetching details", err);
+  }
+}
+
+export async function handleUpdateSellerProfile(req, res) {
+  const sellerBody = req.body;
+  const validate = validateUpdateSellerBody(sellerBody);
+  if (!validate.success) {
+    throw new ApiError(400, "Invalid type of input", validate.error);
+  }
+  //removig the file from the seller body
+  delete sellerBody["image"];
+
+  //TODO Optimize
+  if (req.file) {
+    try {
+      //TODO have to debug the issue
+      // if (sellerBody.seller_logo_url) {
+      //   const res = await cloudinary.uploader.destroy(
+      //     sellerBody.seller_logo_url
+      //   );
+      //   console.log(res);
+      // }
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "seller_profiles", //  organize uploads into folders
+      });
+
+      req.body["seller_logo_url"] = result.secure_url;
+      await fs.unlink(req.file.path);
+    } catch (error) {
+      console.error("Error uploading to Cloudinary:", error);
+      //if failed to update then deleting the image
+      try {
+        await fs.unlink(req.file.path);
+      } catch (unlinkError) {
+        console.error("Error deleting file:", unlinkError);
+      }
+      throw new ApiError(500, "Error uploading image", error);
+    }
+  }
+
+  // const fieldMapping = {
+  //   name: "seller_name",
+  //   logoUrl: "seller_logo_url",
+  //   sellerAddress: "seller_address",
+  //   sellerUrl: "seller_url",
+  //   contactNumber: "seller_contact_number",
+  //   sellerEmail: "seller_email",
+  //   bio: "seller_bio",
+  //   description: "seller_description",
+  // };
+  // const updateFileds = Object.keys(sellerBody).reduce((acc, key) => {
+  //   if (fieldMapping[key]) {
+  //     acc[fieldMapping[key]] = sellerBody[key];
+  //   }
+  //   return acc;
+  // }, {});
+
+  try {
+    const updatedSeller = await prismaClient.sellers.update({
+      where: {
+        seller_id: req.seller.seller_id,
+      },
+      data: sellerBody,
+    });
+    res
+      .status(200)
+      .json(
+        new ApiResponse(200, "seller updated successrfully", updatedSeller)
+      );
+  } catch (err) {
+    console.error(err);
+    if (err.code === "P2025" && err.meta?.cause?.includes("not found")) {
+      throw new ApiError(400, "The seller does not exist", err);
+    }
+    throw new ApiError(
+      500,
+      "Error occured during updating the user",
+      err.stack
+    );
+  }
+}
+
 export async function handleUploadNewProduct(req, res) {
+  req.body.price = Number(req.body.price);
+  req.body.stock = Number(req.body.stock);
   const productData = req.body;
   const validate = validateProductBody(productData);
   if (!validate.success) {
     throw new ApiError(400, "Invalid product details", validate.error);
   }
-  let uploadedImages = [];
-  if (req.file && req.file > 0) {
-    for (let image of req.file) {
-      try {
-        let result = await cloudinary.uploader.upload(image.path, {
-          folder: "products",
-        });
-        uploadedImages.push(result.secure_url);
-        await fs.unlink(file.path);
-      } catch (error) {
-        console.error("Error uploading to Cloudinary:", error);
-        //if failed to update then deleting the image
-        try {
-          await fs.unlink(image.path);
-        } catch (unlinkError) {
-          console.error("Error deleting file:", unlinkError);
-        }
-        throw new ApiError(500, "Error uploading image", error);
-      }
-    }
-  }
 
   const slugName = makeSlug(productData.name);
-  let dbImages = [];
   try {
     const newProduct = await prismaClient.products.create({
       data: {
@@ -55,22 +158,31 @@ export async function handleUploadNewProduct(req, res) {
         seller_id: req.seller.seller_id,
       },
     });
+    let uploadedImage = null;
+    if (req.file) {
+      let result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "products",
+      });
+      uploadedImage = result.secure_url;
+    }
 
-    for (let url of uploadedImages) {
+    if (uploadedImage) {
       const newLink = await prismaClient.productImages.create({
         data: {
-          image_url: url,
+          image_url: uploadedImage,
           product_id: newProduct.product_id,
         },
       });
-      dbImages.push(newLink);
+
+      newProduct["images"] = newLink;
     }
-    newProduct["images"] = dbImages;
+
     return res
       .status(201)
       .json(new ApiResponse(201, "Product createrd", newProduct));
   } catch (err) {
     console.error("Error occured during creating new product :", err);
+
     if (err.code === "P2002" && err.meta.target.includes("slug")) {
       throw new ApiError(
         400,
@@ -83,9 +195,19 @@ export async function handleUploadNewProduct(req, res) {
       "Error occured while creating new product",
       err.stack
     );
+  } finally {
+    try {
+      if (req.file) {
+        await fs.unlink(req.file.path);
+      }
+    } catch (unlinkError) {
+      console.error("Error deleting file inside the error:", unlinkError);
+      throw new ApiError(500, "Error occured while deleting image");
+    }
   }
 }
 
+//later
 export async function handleUpdateProduct(req, res) {
   const productId = req.params.id;
   if (!productId) {
@@ -133,53 +255,6 @@ export async function handleUpdateProduct(req, res) {
     throw new ApiError(
       500,
       "Error occured during updating the product",
-      err.stack
-    );
-  }
-}
-
-export async function handleUpdateSellerProfile(req, res) {
-  const sellerBody = req.body;
-  const validate = validateUpdateSellerBody(sellerBody);
-  if (!validate.success) {
-    throw new ApiError(400, "Invalid type of input", validate.error);
-  }
-  const fieldMapping = {
-    name: "seller_name",
-    logoUrl: "seller_logo_url",
-    sellerAddress: "seller_address",
-    sellerUrl: "seller_url",
-    contactNumber: "seller_contact_number",
-    sellerEmail: "seller_email",
-    bio: "seller_bio",
-    description: "seller_description",
-  };
-  const updateFileds = Object.keys(sellerBody).reduce((acc, key) => {
-    if (fieldMapping[key]) {
-      acc[fieldMapping[key]] = sellerBody[key];
-    }
-    return acc;
-  }, {});
-  try {
-    const updatedSeller = await prismaClient.sellers.update({
-      where: {
-        seller_id: req.seller.seller_id,
-      },
-      data: updateFileds,
-    });
-    res
-      .status(200)
-      .json(
-        new ApiResponse(200, "seller updated successrfully", updatedSeller)
-      );
-  } catch (err) {
-    console.error(err);
-    if (err.code === "P2025" && err.meta?.cause?.includes("not found")) {
-      throw new ApiError(400, "The seller does not exist", err);
-    }
-    throw new ApiError(
-      500,
-      "Error occured during updating the user",
       err.stack
     );
   }

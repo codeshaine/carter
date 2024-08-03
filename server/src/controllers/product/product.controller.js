@@ -45,6 +45,7 @@ export async function handleGetProductsWithFilter(req, res) {
   const lower_bound = parseFloat(req.query.lb) || 0;
   const upper_bound = parseFloat(req.query.ub) || Number.MAX_SAFE_INTEGER;
   //! implemnt the limit  for pagination
+  const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
   const category = req.query.cat;
 
@@ -83,6 +84,7 @@ export async function handleGetProductsWithFilter(req, res) {
     const prodctsList = await prismaClient.products.findMany({
       where: whereCondition,
       take: limit,
+      skip: (page - 1) * limit, //! for pagination
       select: {
         product_id: true,
         name: true,
