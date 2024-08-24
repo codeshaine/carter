@@ -109,7 +109,7 @@ export async function handleGetProductsWithFilter(req, res) {
 export async function handleGetOneProduct(req, res) {
   const slugId = req.params.slugId;
   const CACHE_KEY = slugId;
-  const CACHE_EXPIRATION = 60;
+  const CACHE_EXPIRATION = 20;
   if (!slugId) {
     throw new ApiError(400, "provide valid id");
   }
@@ -126,7 +126,28 @@ export async function handleGetOneProduct(req, res) {
       where: {
         slug: slugId,
       },
+
       include: {
+        product_images: {
+          select: {
+            image_id: true,
+            image_url: true,
+          },
+        },
+        review: {
+          select: {
+            review_id: true,
+            review: true,
+            star: true,
+            user: {
+              select: {
+                name: true,
+                email: true,
+                profile_url: true,
+              },
+            },
+          },
+        },
         seller: {
           select: {
             seller_name: true,
@@ -139,7 +160,9 @@ export async function handleGetOneProduct(req, res) {
         },
       },
     });
-
+    if (!product) {
+      throw new ApiError(400, "No Product Found");
+    }
     await redisClient.setex(
       CACHE_KEY,
       CACHE_EXPIRATION,
@@ -150,6 +173,9 @@ export async function handleGetOneProduct(req, res) {
       .json(new ApiResponse(200, "Proudct information", product));
   } catch (err) {
     console.error(err);
+    if (err instanceof ApiError) {
+      throw new ApiError(err.statuscode, err.message, err);
+    }
     throw new ApiError(500, "Error occured while getting product", err);
   }
 }

@@ -5,7 +5,6 @@ function Home() {
   return (
     <>
       <Navbar />
-
       <Link
         to="/login"
         className="bolder text-xl hover:text-red-500 cursor-pointer border p-2 border-black  bg-blue-400"
@@ -35,6 +34,30 @@ function Home() {
         to="/seller/product/new"
       >
         New Product
+      </Link>
+      <Link
+        className="bolder text-xl hover:text-red-500 cursor-pointer border p-2 border-black  bg-blue-400"
+        to="/seller/product/myproducts"
+      >
+        My Products
+      </Link>
+      <Link
+        className="bolder text-xl hover:text-red-500 cursor-pointer border p-2 border-black  bg-blue-400"
+        to="/user/my-orders"
+      >
+        My Orders
+      </Link>{" "}
+      <Link
+        className="bolder text-xl hover:text-red-500 cursor-pointer border p-2 border-black  bg-blue-400"
+        to="/user/manage-addresses"
+      >
+        manage addresses
+      </Link>
+      <Link
+        className="bolder text-xl hover:text-red-500 cursor-pointer border p-2 border-black  bg-blue-400"
+        to="/user/my-cart"
+      >
+        my-cart
       </Link>
       <Footer />
     </>

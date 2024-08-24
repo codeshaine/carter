@@ -278,6 +278,11 @@ export async function handleDeleteProduct(req, res) {
     if (!product) {
       throw new ApiError(400, "Product not found");
     }
+    await prismaClient.productImages.deleteMany({
+      where: {
+        product_id: product.product_id,
+      },
+    });
     await prismaClient.reviews.deleteMany({
       where: {
         product_id: product.product_id,
@@ -311,7 +316,7 @@ export async function handleGetAllSellerProducts(req, res) {
   }
   //TODO reduce the cache time
   const CACHE_KEY = "all_seller_product";
-  const CACHE_EXPIRATION = 60;
+  const CACHE_EXPIRATION = 5;
   const cachedProductData = await redisClient.get(CACHE_KEY);
   if (cachedProductData) {
     return res
@@ -328,6 +333,18 @@ export async function handleGetAllSellerProducts(req, res) {
     const productData = await prismaClient.products.findMany({
       where: {
         seller_id: sellerId,
+      },
+      select: {
+        product_id: true,
+        name: true,
+        slug: true,
+        sub_name: true,
+        price: true,
+        product_images: {
+          select: {
+            image_url: true,
+          },
+        },
       },
     });
     if (productData.length === 0) {
@@ -390,11 +407,13 @@ export async function handleOrderedSellerItems(req, res) {
         address: true,
       },
     });
+
     redisClient.setex(
       CACHE_KEY,
       CACHE_EXPIRATION,
       JSON.stringify(orderedItems)
     );
+
     res
       .status(200)
       .json(new ApiResponse(200, "Got the ordered products", orderedItems));

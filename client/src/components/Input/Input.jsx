@@ -1,8 +1,13 @@
-function Input({ name = "input", placeholder = "input", type = "text" }) {
+function Input({
+  name = "input",
+  placeholder = "input",
+  type = "text",
+  labelName = "default",
+}) {
   return (
     <div>
       <span className="opacity-40 font-semibold text-xs block p-1 lg:p-2">
-        Product Name
+        {labelName}
       </span>
       <input
         type={type}

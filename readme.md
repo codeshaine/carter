@@ -20,6 +20,7 @@ NOTE THAT YOU HAVENT MADE USE OF REDIS CLLIENT
 -- time of the cache
 -- REFACTOR THE QUERY COLMUN DATA
 -- meesage to seller mail on purchase and cancel product delivery
+-- Need to fix the redis time on differnt routes
 
 Frontend
 
@@ -29,17 +30,14 @@ pagination
 //done
 user update done
 seller
-
-//today
 seller update
 product
-product update
+logout need testing
 
 //tomarrow onwards
-logout need testing
+product page
 home page
 search and pagination
-product page
 buy now
 add to cart and order now
 order status

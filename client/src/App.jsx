@@ -12,6 +12,12 @@ import UserProfile from "./pages/user/UserProfile";
 import SignUp from "./pages/seller/SignUp";
 import SellerProfile from "./pages/seller/SellerProfile";
 import NewProductRegister from "./pages/seller/NewProductRegister";
+import ManageMyProducts from "./pages/seller/ManageMyProducts";
+import Product from "./pages/Product";
+import MyOrders from "./pages/user/MyOrders";
+import BuyNow from "./pages/user/BuyNow";
+import ManageAddress from "./pages/user/ManageAddress";
+import Cart from "./pages/user/Cart";
 function App() {
   axios.defaults.withCredentials = true;
   axios.defaults.baseURL = import.meta.env.VITE_BACKEND_API_URL;
@@ -36,8 +42,27 @@ function App() {
           path="/seller/product/new"
           element={<NewProductRegister />}
         />
+        <Route
+          key="manageProudcts"
+          path="/seller/product/myproducts"
+          element={<ManageMyProducts />}
+        />
+        <Route key="products" path="/product/:slugId" element={<Product />} />
 
+        <Route key="myOrders" path="/user/my-orders" element={<MyOrders />} />
         {/* <Route key="specific" path="specific/:eventid" element={<Specific />} /> */}
+
+        <Route
+          key="buynow"
+          path="/user/buy-now/:slugId/:qty"
+          element={<BuyNow />}
+        />
+        <Route
+          key="manageAddresses"
+          path="/user/manage-addresses"
+          element={<ManageAddress />}
+        />
+        <Route key="mycart" path="/user/my-cart" element={<Cart />} />
       </Route>,
     ])
   );

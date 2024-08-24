@@ -11,7 +11,9 @@ import fs from "fs/promises";
 import redisClient from "../../clients/redisCleint.js";
 import { validateUserAddress } from "../../services/zod/userAddress.js";
 import cloudinary from "../../services/cloudinary/config.js";
+import { deleteRedisKey } from "../../services/redis/redisdeleteKey.js";
 
+// ******************managin user profile********************************
 export async function handleGetUserInfo(req, res) {
   const CACHE_KEY = "user_details" + req.user.user_id;
   //TODO adjust
@@ -110,6 +112,7 @@ export async function handleUpdateUser(req, res) {
 }
 
 //TODO
+//*********************** handling user review ***********************
 export async function handlePushReview(req, res) {
   const slugId = req.params.id;
   if (!slugId) {
@@ -127,10 +130,18 @@ export async function handlePushReview(req, res) {
       },
       select: {
         product_id: true,
+        seller: {
+          select: {
+            user_id: true,
+          },
+        },
       },
     });
     if (!product) {
       throw new ApiError(400, "Product not found");
+    }
+    if (req.user.user_id === product.seller.user_id) {
+      throw new ApiError(400, "You cant review your own product");
     }
     const newReview = await prismaClient.reviews.create({
       data: {
@@ -152,10 +163,47 @@ export async function handlePushReview(req, res) {
     throw new ApiError(500, "Error occured while creating review", err.stack);
   }
 }
+export async function handleDeleteReview(req, res) {
+  const slug = req.params.id;
+  if (!slug) {
+    throw new ApiError(400, "provide valid slug id");
+  }
+  try {
+    const product = await prismaClient.products.findFirst({
+      where: {
+        slug: slug,
+      },
+    });
+    if (!product) {
+      throw new ApiError(400, "Invalid slug");
+    }
+    const review = await prismaClient.reviews.delete({
+      where: {
+        user_id_product_id: {
+          user_id: req.user.user_id,
+          product_id: product.product_id,
+        },
+      },
+    });
+    res.status(200).json(new ApiResponse(200, "Deleted successfully", review));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof ApiError) {
+      throw new ApiError(err.statuscode, err.message, err.stack);
+    }
+    if (err.code === "P2025" && err.meta?.cause.includes("not exist")) {
+      throw new ApiError(400, "No review exist", err);
+    }
+    throw new ApiError(500, "Deletetion Failed", err);
+  }
+}
 
+//***********************hanlding user address************************
 export async function handldeAddUserAddress(req, res) {
+  console.log(req.body);
   const userAddress = req.body;
   const validate = validateUserAddress(userAddress);
+  // console.log(validate.error);
   if (!validate.success) {
     throw new ApiError(400, "Invalid Input", validate.error);
   }
@@ -172,6 +220,8 @@ export async function handldeAddUserAddress(req, res) {
         user_id: req.user.user_id,
       },
     });
+
+    deleteRedisKey("user_address_" + req.user.user_id);
     res.status(201).json(new ApiResponse(201, "address created", newAddress));
   } catch (err) {
     console.error(err);
@@ -191,6 +241,7 @@ export async function handleDeleteUserAddress(req, res) {
         user_address_id: addressId,
       },
     });
+    deleteRedisKey("user_address_" + req.user.user_id);
     res
       .status(200)
       .json(new ApiResponse(200, "Deleted address", deletedAddress));
@@ -233,41 +284,7 @@ export async function handleGetUserAddress(req, res) {
   }
 }
 
-export async function handleDeleteReview(req, res) {
-  const slug = req.params.id;
-  if (!slug) {
-    throw new ApiError(400, "provide valid slug id");
-  }
-  try {
-    const product = await prismaClient.products.findFirst({
-      where: {
-        slug: slug,
-      },
-    });
-    if (!product) {
-      throw new ApiError(400, "Invalid slug");
-    }
-    const review = await prismaClient.reviews.delete({
-      where: {
-        user_id_product_id: {
-          user_id: req.user.user_id,
-          product_id: product.product_id,
-        },
-      },
-    });
-    res.status(200).json(new ApiResponse(200, "Deleted successfully", review));
-  } catch (err) {
-    console.error(err);
-    if (err instanceof ApiError) {
-      throw new ApiError(err.statuscode, err.message, err.stack);
-    }
-    if (err.code === "P2025" && err.meta?.cause.includes("not exist")) {
-      throw new ApiError(400, "No review exist", err);
-    }
-    throw new ApiError(500, "Deletetion Failed", err);
-  }
-}
-
+//*********************handling buy and order now feature **************
 export async function handleBuyNow(req, res) {
   const buyNowBody = req.body;
   const validate = validateBuyNowBody(buyNowBody);
@@ -295,6 +312,7 @@ export async function handleBuyNow(req, res) {
         },
       },
     });
+
     if (product.seller.user.user_id === req.user.user_id) {
       throw new ApiError(400, "You cant buy your own product");
     }
@@ -328,6 +346,7 @@ export async function handleBuyNow(req, res) {
     if (err instanceof ApiError) {
       throw new ApiError(err.statuscode, err.message, err.stack);
     }
+
     console.error(err);
     throw new ApiError(500, "Error occured while creating order", err.stack);
   }
@@ -399,6 +418,31 @@ export async function handleAddToCart(req, res) {
       throw new ApiError(err.statuscode, err.message, err.stack);
     }
     throw new ApiError(500, "Failed to add item to cart", err);
+  }
+}
+
+export async function handleDeleteFromCart(req, res) {
+  const cartItemId = parseInt(req.params.itemId);
+  console.log(cartItemId);
+  const CACHE_KEY = "cart_items_" + req.user.user_id;
+  try {
+    await prismaClient.cartItems.delete({
+      where: {
+        cart_item_id: cartItemId,
+      },
+    });
+
+    await redisClient.del(CACHE_KEY);
+    res.status(200).json(new ApiResponse(200, "Deleted successfully"));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof ApiError) {
+      throw new ApiError(err.statuscode, err.message, err.stack);
+    }
+    if (err.code === "P2025" && err.meta?.cause.includes("not exist")) {
+      throw new ApiError(400, "No cart item exist", err);
+    }
+    throw new ApiError(500, "Deletetion Failed", err);
   }
 }
 
@@ -478,15 +522,61 @@ export async function handleOrderNow(req, res) {
   }
 }
 
+export async function handleGetCartItems(req, res) {
+  const userId = req.user.user_id;
+  const CACHE_KEY = "cart_items_" + req.user.user_id;
+  const CACHE_EXIPIRATION = 10;
+  const cachedData = await redisClient.get(CACHE_KEY);
+  if (cachedData) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "cart items", JSON.parse(cachedData)));
+  }
+  try {
+    const cartItems = await prismaClient.carts.findFirst({
+      where: {
+        user_id: userId,
+      },
+      select: {
+        items: {
+          select: {
+            cart_item_id: true,
+            quantity: true,
+            product: {
+              select: {
+                name: true,
+                product_images: true,
+                price: true,
+                category: true,
+                description: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    redisClient.setex(CACHE_KEY, CACHE_EXIPIRATION, JSON.stringify(cartItems));
+    res.status(200).json(new ApiResponse(200, "cart items", cartItems));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof ApiError)
+      throw new ApiError(err.statuscode, err.message, err);
+    throw new ApiError(500, "Error occured while fetching cart items ", err);
+  }
+}
+
+//********************managing ordered items ***********************
 export async function handleGetOrders(req, res) {
-  const CACHE_KEY = "ordered_items";
-  const CACHE_EXIPIRATION = 60;
+  const CACHE_KEY = "ordered_items_" + req.user.user_id;
+  const CACHE_EXIPIRATION = 10;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
     return res
       .status(200)
       .json(new ApiResponse(200, "Ordered items", JSON.parse(cachedData)));
   }
+
   try {
     const ordersList = await prismaClient.orders.findMany({
       where: {
@@ -494,12 +584,23 @@ export async function handleGetOrders(req, res) {
       },
       select: {
         order_id: true,
-        product_id: true,
+        product: {
+          select: {
+            slug: true,
+            name: true,
+            product_images: {
+              select: {
+                image_url: true,
+              },
+            },
+          },
+        },
+        user_address_id: true,
         quantity: true,
         total: true,
         delivery_status: true,
         created_at: true,
-        product: true,
+        // product: true,
       },
     });
     redisClient.setex(CACHE_KEY, CACHE_EXIPIRATION, JSON.stringify(ordersList));
@@ -507,6 +608,37 @@ export async function handleGetOrders(req, res) {
   } catch (err) {
     console.error(err);
     throw new ApiError(500, "Error occured while fetching ordered items ", err);
+  }
+}
+
+export async function handleGetOrderedDetails(req, res) {
+  try {
+    const orderedItemsData = await prismaClient.orders.findMany({
+      where: {
+        user_id: req.user.user_id,
+      },
+      select: {
+        order_id: true,
+        product: {
+          select: {
+            slug: true,
+          },
+        },
+        user_address_id: true,
+        delivery_status: true,
+        quantity: true,
+        total: true,
+      },
+    });
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "ordered items", orderedItemsData));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof ApiError) {
+      throw new ApiError(err.statuscode, err.message, err.stack);
+    }
+    throw new ApiError(500, "Error orccured while cancelling orders", err);
   }
 }
 

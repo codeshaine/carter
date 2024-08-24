@@ -11,9 +11,12 @@ import {
   handldeAddUserAddress,
   handleAddToCart,
   handleBuyNow,
+  handleDeleteFromCart,
   handleDeleteOrder,
   handleDeleteReview,
   handleDeleteUserAddress,
+  handleGetCartItems,
+  handleGetOrderedDetails,
   handleGetOrders,
   handleGetUserAddress,
   handleGetUserInfo,
@@ -28,12 +31,16 @@ userRouter.get("/", isAuthenticated, handler(handleGetUserInfo));
 userRouter.post("/signup", handler(signUp));
 userRouter.post("/signin", handler(signIn));
 userRouter.get("/logout", handler(signOut));
+
+//**********manage profile********************
 userRouter.post(
   "/profile/update",
   isAuthenticated,
   upload.single("image"),
   handler(handleUpdateUser)
 );
+
+//**********handling review********************
 userRouter.post(
   "/product/review/:id",
   isAuthenticated,
@@ -44,18 +51,44 @@ userRouter.delete(
   isAuthenticated,
   handler(handleDeleteReview)
 );
+
+//************handling product pruchase ****************
 userRouter.post("/product/buy-now", isAuthenticated, handler(handleBuyNow));
 userRouter.post(
   "/product/add-to-cart",
   isAuthenticated,
   handler(handleAddToCart)
 );
-userRouter.post("/product/order-now", isAuthenticated, handler(handleOrderNow));
+userRouter.get(
+  "/product/my-cart",
+  isAuthenticated,
+  handler(handleGetCartItems)
+);
+
+userRouter.delete(
+  "/product/my-cart/:itemId",
+  isAuthenticated,
+  handler(handleDeleteFromCart)
+);
+
+userRouter.post(
+  "/product/cart/order-now",
+  isAuthenticated,
+  handler(handleOrderNow)
+);
+
 userRouter.get(
   "/product/ordered-items",
   isAuthenticated,
   handler(handleGetOrders)
 );
+
+//!what is this route
+// userRouter.get(
+//   "/product/ordered-items",
+//   isAuthenticated,
+//   handler(handleGetOrderedDetails)
+// );
 
 userRouter.delete(
   "/product/order/cancel/:orderId",
@@ -63,6 +96,7 @@ userRouter.delete(
   handler(handleDeleteOrder)
 );
 
+//*************managing user addresses ***************
 userRouter.post(
   "/address/new",
   isAuthenticated,
@@ -80,6 +114,7 @@ userRouter.get(
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
+//*********************google sign in *******************
 userRouter.get(
   "/auth/google/callback",
   passport.authenticate("google", {
