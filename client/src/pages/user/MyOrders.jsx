@@ -1,10 +1,11 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function MyOrders() {
   let [orderedItems, setOrderedItems] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -14,20 +15,24 @@ function MyOrders() {
         );
         setOrderedItems(resorderedItems.data.data);
       } catch (err) {
+        if (err.response.status === 401) navigate("/login");
         toast.error(err.response.data.message);
       }
     })();
   }, []);
 
   const cancelOrder = async (orderId) => {
-    try {
-      await axios.delete(`/api/user/product/order/cancel/${orderId}`);
-      toast.success("Order canceled successfully.");
-      setOrderedItems((prevItems) =>
-        prevItems.filter((item) => item.order_id !== orderId)
-      );
-    } catch (err) {
-      toast.error("Failed to cancel the order.");
+    const confirmPrice = confirm("are you sure you want to cancel the order ?");
+    if (confirmPrice) {
+      try {
+        await axios.delete(`/api/user/product/order/cancel/${orderId}`);
+        toast.success("Order canceled successfully.");
+        setOrderedItems((prevItems) =>
+          prevItems.filter((item) => item.order_id !== orderId)
+        );
+      } catch (err) {
+        toast.error("Failed to cancel the order.");
+      }
     }
   };
 
@@ -75,10 +80,15 @@ function MyOrders() {
                 </div>
               </div>
               <button
+                disabled={item.delivery_status}
                 onClick={() => cancelOrder(item.order_id)}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                className={`px-4 py-2  text-white rounded-md   ${
+                  item.delivery_status
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-red-500 hover:bg-red-600"
+                }`}
               >
-                Cancel Order
+                {item.delivery_status} Cancel Order
               </button>
             </div>
           ))}

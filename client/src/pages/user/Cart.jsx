@@ -1,11 +1,13 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 function Cart() {
   const [cartItems, setCartItems] = useState([]);
   let [userAddresses, setUserAddresses] = useState([]);
   let [chosenAddress, setChoosenAdress] = useState();
+  const navigate = useNavigate();
   useEffect(() => {
     (async () => {
       try {
@@ -14,6 +16,8 @@ function Cart() {
         setUserAddresses(res2.data.data);
         setCartItems(res1.data.data.items);
       } catch (err) {
+        if (err.response.status === 401) navigate("/login");
+
         console.error(err.response.data.message);
       }
     })();

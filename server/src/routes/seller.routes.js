@@ -68,7 +68,7 @@ sellerRoutes.get(
   handler(handleOrderedSellerItems)
 );
 
-sellerRoutes.get(
+sellerRoutes.post(
   "/products/delivery/done/:orderId",
   isAuthenticated,
   isSeller,

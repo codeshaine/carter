@@ -1,24 +1,24 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 function UserProfile() {
-  let [name, setName] = useState("");
-  let [email, setEmail] = useState("");
-  let [profile, setProfile] = useState(null);
-  let [profilePicUrl, setProfilePicUrl] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [profile, setProfile] = useState(null);
+  const [profilePicUrl, setProfilePicUrl] = useState("");
+  const navigate = useNavigate();
   useEffect(() => {
     (async () => {
       try {
-        const userData = await axios.get("/api/user");
-        // if (!userData) {
-        //   throw new Error("network error");
-        // }
-        setName(userData.data.data.name);
-        setProfilePicUrl(userData.data.data.profile_url);
-        setEmail(userData.data.data.email);
-        console.log(userData.data.data);
+        const { data } = await axios.get("/api/user");
+        setName(data.data.name);
+        setProfilePicUrl(data.data.profile_url);
+        setEmail(data.data.email);
       } catch (err) {
+        console.log(err);
+        if (err.response.status === 401) navigate("/login");
         if (err.response) {
           toast.error(err.response.data.message);
         } else {
@@ -27,112 +27,98 @@ function UserProfile() {
       }
     })();
   }, []);
-  async function handleUserUpdate() {
+
+  const handleUserUpdate = async () => {
     const formData = new FormData();
     formData.append("name", name);
     formData.append("image", profile);
+
     try {
-      const res = await axios.post("api/user/profile/update", formData);
-      console.log(res);
+      await axios.post("/api/user/profile/update", formData);
       toast.success("Updated successfully");
     } catch (err) {
-      if (err.response && err.response) {
+      if (err.response) {
         toast.error(err.response.data.message);
       } else {
         toast.error("Network Error");
       }
     }
-  }
-  async function handleUserLogout() {
+  };
+
+  const handleUserLogout = async () => {
     try {
-      const res = await axios.get("api/user/logout");
-      // console.log(res);
-      toast.success(res.data.data.message);
+      const { data } = await axios.get("/api/user/logout");
+      toast.success(data.data.message);
     } catch (err) {
-      console.log(err);
-      if (err.response && err.response) {
+      if (err.response) {
         toast.error(err.response.data.message);
       } else {
         toast.error("Network Error");
       }
     }
-  }
+  };
+
   return (
     <>
-      <div>
-        <Toaster />
-      </div>
-      <div className="w-screen h-screen flex lg:justify-center gap-28 lg:items-center mt-10">
-        <div className="w-2/3 lg:1/3 bg-blue-300 flex justify-center lg:p-4">
-          <div className=" flex flex-col  items-center gap-4 lg:w-1/2 bg-violet-50 lg:p-4">
-            <h1 className="font-bold lg:text-4xl text-2xl text-center">
-              User Profile
-            </h1>
+      <Toaster />
+      <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
+        <div className="bg-white shadow-lg rounded-lg max-w-md w-full">
+          <div className="p-6 flex flex-col items-center">
+            <h1 className="text-2xl font-bold mb-4">User Profile</h1>
             <img
               src={profilePicUrl}
-              alt="user_profile"
-              className="lg:w-36 md:w-20 w-20 rounded-full"
+              alt="User Profile"
+              className="w-24 h-24 rounded-full mb-4 object-cover"
             />
-
-            <div>
-              <span className="opacity-40 font-semibold text-xs block p-1 lg:p-2">
+            <div className="w-full mb-4">
+              <label className="block text-sm font-semibold text-gray-600 mb-1">
                 Full Name
-              </span>
+              </label>
               <input
                 type="text"
-                name="name"
-                id=""
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                }}
-                placeholder="name"
-                className="lg:text-lg text-sm border border-black-100 p-1 lg:p-2"
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
-            <div>
-              <span className="opacity-40 font-semibold text-xs block p-1 lg:p-2">
+            <div className="w-full mb-4">
+              <label className="block text-sm font-semibold text-gray-600 mb-1">
                 Email
-              </span>
+              </label>
               <input
                 type="email"
-                name="name"
-                id=""
                 value={email}
                 disabled
-                placeholder="email"
-                className="lg:text-lg text-sm border border-black-100 lg:p-2"
+                placeholder="Email"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-200 cursor-not-allowed"
               />
             </div>
-            <div>
-              <span className="opacity-40 font-semibold text-sm block lg:p-2">
+            <div className="w-full mb-4">
+              <label className="block text-sm font-semibold text-gray-600 mb-1">
                 Profile Image
-              </span>
+              </label>
               <input
-                className="lg:text-md text-sm"
                 type="file"
-                name="image"
-                id=""
-                onChange={(e) => {
-                  setProfile(e.target.files[0]);
-                }}
+                onChange={(e) => setProfile(e.target.files[0])}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
-            <div className="flex lg:gap-5">
+            <div className="flex gap-4 mt-4 w-full">
               <button
                 onClick={handleUserUpdate}
-                className="lg:px-4 lg:py-2  py-1 px-3 lg:text-lg  text-sm font-semibold bg-blue-400 text-white rounded-md"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
               >
                 Update
               </button>
-              <button className="lg:px-4 lg:py-2 py-1 px-3 lg:text-lg text-sm font-semibold bg-red-400 text-white rounded-md">
+              <button className="bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-600 transition">
                 View Addresses
               </button>
               <button
                 onClick={handleUserLogout}
-                className="lg:px-4 lg:py-2 py-1 px-3 lg:text-lg text-sm font-semibold bg-red-400 text-white rounded-md"
+                className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition"
               >
-                log out
+                Log Out
               </button>
             </div>
           </div>

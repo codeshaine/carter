@@ -370,7 +370,7 @@ export async function handleGetAllSellerProducts(req, res) {
 
 export async function handleOrderedSellerItems(req, res) {
   const CACHE_KEY = "seller_ordered_list_" + req.seller.seller_id;
-  const CACHE_EXPIRATION = 60;
+  const CACHE_EXPIRATION = 5;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
     return res
@@ -380,6 +380,7 @@ export async function handleOrderedSellerItems(req, res) {
       );
   }
 
+  console.log(req.seller.seller_id);
   try {
     const orderedItems = await prismaClient.orders.findMany({
       where: {

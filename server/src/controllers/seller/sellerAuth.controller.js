@@ -24,10 +24,10 @@ export async function handleSellerSignup(req, res) {
       // Code running in a transaction...
       const seller = await tx.sellers.create({
         data: {
-          seller_name: sellerData.name,
-          seller_address: sellerData.sellerAddress,
-          seller_contact_number: sellerData.contactNumber,
-          seller_email: sellerData.sellerEmail || user.email,
+          seller_name: sellerData.seller_name,
+          seller_address: sellerData.seller_address,
+          seller_contact_number: sellerData.seller_contact_number,
+          seller_email: sellerData.seller_email || user.email,
           user_id: user.user_id,
         },
       });

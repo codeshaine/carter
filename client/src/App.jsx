@@ -18,6 +18,8 @@ import MyOrders from "./pages/user/MyOrders";
 import BuyNow from "./pages/user/BuyNow";
 import ManageAddress from "./pages/user/ManageAddress";
 import Cart from "./pages/user/Cart";
+import ManageOrderedProducts from "./pages/seller/ManageOrderedProducts";
+import ProductList from "./pages/ProductList";
 function App() {
   axios.defaults.withCredentials = true;
   axios.defaults.baseURL = import.meta.env.VITE_BACKEND_API_URL;
@@ -47,6 +49,12 @@ function App() {
           path="/seller/product/myproducts"
           element={<ManageMyProducts />}
         />
+
+        <Route
+          key="product-list"
+          path="/product-list/:nameParam"
+          element={<ProductList />}
+        />
         <Route key="products" path="/product/:slugId" element={<Product />} />
 
         <Route key="myOrders" path="/user/my-orders" element={<MyOrders />} />
@@ -63,6 +71,11 @@ function App() {
           element={<ManageAddress />}
         />
         <Route key="mycart" path="/user/my-cart" element={<Cart />} />
+        <Route
+          key="seller-dashbaord"
+          path="/seller/manage-orders"
+          element={<ManageOrderedProducts />}
+        />
       </Route>,
     ])
   );

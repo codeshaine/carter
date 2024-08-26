@@ -40,15 +40,18 @@ export async function handleGetNewProducts(req, res) {
     );
   }
 }
+
 export async function handleGetProductsWithFilter(req, res) {
   const productname = req.params.name;
   const lower_bound = parseFloat(req.query.lb) || 0;
   const upper_bound = parseFloat(req.query.ub) || Number.MAX_SAFE_INTEGER;
   //! implemnt the limit  for pagination
   const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 10;
+  const limit = parseInt(req.query.limit, 10) || 6;
   const category = req.query.cat;
 
+  let totalNumberOfProduct = 0;
+  const TOATL_NUMBER_OF_PRODUCT = "total_product_count";
   try {
     const whereCondition = {
       AND: [
@@ -72,6 +75,12 @@ export async function handleGetProductsWithFilter(req, res) {
                 mode: "insensitive",
               },
             },
+            {
+              category: {
+                contains: productname,
+                mode: "insensitive",
+              },
+            },
           ],
         },
       ],
@@ -81,6 +90,16 @@ export async function handleGetProductsWithFilter(req, res) {
         category: category,
       });
     }
+    // const cahcedProductNumber = await redisClient.get(TOATL_NUMBER_OF_PRODUCT);
+    // if (cahcedProductNumber) {
+    // totalNumberOfProduct = cahcedProductNumber;
+    // } else {
+    const temp = await prismaClient.products.count({
+      where: whereCondition,
+    });
+    totalNumberOfProduct = temp;
+    // redisClient.setex(TOATL_NUMBER_OF_PRODUCT, 300, totalNumberOfProduct);
+    // }
     const prodctsList = await prismaClient.products.findMany({
       where: whereCondition,
       take: limit,
@@ -88,6 +107,13 @@ export async function handleGetProductsWithFilter(req, res) {
       select: {
         product_id: true,
         name: true,
+        price: true,
+        category: true,
+        review: {
+          select: {
+            star: true,
+          },
+        },
         slug: true,
         sub_name: true,
         product_images: true,
@@ -96,7 +122,12 @@ export async function handleGetProductsWithFilter(req, res) {
     if (prodctsList.length === 0) {
       throw new ApiError(400, "There are no products");
     }
-    res.status(200).json(new ApiResponse(200, "Got Products", prodctsList));
+    res.status(200).json(
+      new ApiResponse(200, "Got Products", {
+        pl: prodctsList,
+        tp: totalNumberOfProduct,
+      })
+    );
   } catch (err) {
     console.error(err);
     if (err instanceof ApiError) {

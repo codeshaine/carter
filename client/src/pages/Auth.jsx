@@ -82,6 +82,14 @@ export default function Auth() {
       <div>
         <Toaster />
       </div>
+      <div>
+        <button
+          className="bg-blue-700 text-white rounded-md px-4 py-2"
+          onClick={() => navigate("/")}
+        >
+          Home
+        </button>
+      </div>
       <div className="mt-40 lg:mt-10 md:mt-20">
         {isSignUp ? (
           <div className="flex w-full max-w-sm mx-auto overflow-hidden bg-white rounded-lg shadow-lg dark:bg-gray-800 lg:max-w-4xl">

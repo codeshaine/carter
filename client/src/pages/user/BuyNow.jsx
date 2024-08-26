@@ -1,8 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
-import { useParams } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 
 function BuyNow() {
   const { slugId, qty } = useParams();
@@ -10,6 +9,7 @@ function BuyNow() {
   let [quantity, setQuantity] = useState(parseInt(qty));
   let [userAddresses, setUserAddresses] = useState([]);
   let [chosenAddress, setChoosenAdress] = useState();
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -21,21 +21,24 @@ function BuyNow() {
         console.log(userAddresses);
         console.log(productDetails);
       } catch (err) {
+        if (err.response.status === 401) navigate("/login");
         console.error(err.response.data.message);
       }
     })();
-  }, []);
+  }, [slugId]);
 
   const handleBuyNow = async () => {
     try {
-      const res = await axios.post("/api/user/product/buy-now", {
+      await axios.post("/api/user/product/buy-now", {
         slug: slugId,
         quantity: quantity,
         userAddress: chosenAddress,
       });
-      console.log(res);
+      toast.success("Product Purchased Successfully");
     } catch (err) {
-      toast.error(err.response.data.message);
+      toast.error(
+        err.response.data.message + " provide the valid user address"
+      );
     }
   };
 
@@ -43,89 +46,95 @@ function BuyNow() {
     setChoosenAdress(addressId);
   };
 
-  if (!productDetails) return <div>No Response</div>;
+  if (!productDetails) return <div className="text-center p-4">Loading...</div>;
+
   return (
     <>
-      <div>
-        <Toaster />
-      </div>
-      <div>
-        <h1>Buy Now</h1>
-        <div className="border bg-orange-200 p-10">
+      <Toaster />
+      <div className="max-w-3xl mx-auto p-4">
+        <h1 className="text-3xl font-semibold mb-6">Buy Now</h1>
+        <div className="border rounded-lg shadow-lg bg-white p-6 mb-6">
           {productDetails.product_images.length > 0 && (
             <img
               src={productDetails.product_images[0].image_url}
-              alt="product image"
+              alt="product"
+              className="w-full h-auto object-cover rounded-md mb-4"
             />
           )}
           <Link
-            className="hover:text-blue-900 hover:underline"
-            to={"/product/" + slugId}
+            className="text-blue-600 hover:text-blue-800 hover:underline"
+            to={`/product/${slugId}`}
           >
-            <h1 className="font-semibold text-2xl">{productDetails.name}</h1>
+            <h2 className="text-2xl font-semibold mb-2">
+              {productDetails.name}
+            </h2>
           </Link>
-
-          <h2 className="font-medium text-xl">{productDetails.sub_name}</h2>
-          <p className="text-4xl font-bold">{productDetails.price} Rupees</p>
+          <h3 className="text-xl font-medium mb-2">
+            {productDetails.sub_name}
+          </h3>
+          <p className="text-3xl font-bold text-orange-600">
+            {productDetails.price} Rupees
+          </p>
         </div>
-        <div>
-          <p className="text-xl">quantity:</p>
-          <div className="flex gap-3">
+        <div className="mb-6">
+          <p className="text-xl font-medium mb-2">Quantity:</p>
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setQuantity((prev) => prev + 1)}
-              className="border px-2 py-4 bg-orange-600 text-white"
+              className="border px-4 py-2 bg-orange-600 text-white rounded-md shadow-sm hover:bg-orange-700"
             >
               Add
             </button>
-            <p>{quantity}</p>
+            <p className="text-xl font-medium">{quantity}</p>
             <button
-              onClick={() =>
-                setQuantity((prev) => {
-                  return prev > 1 ? prev - 1 : 1;
-                })
-              }
-              className="border px-2 py-4 bg-blue-600 text-white"
+              onClick={() => setQuantity((prev) => (prev > 1 ? prev - 1 : 1))}
+              className="border px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700"
             >
               Remove
             </button>
           </div>
         </div>
-        <div>
-          <button
-            onClick={handleBuyNow}
-            className="text-2xl bg-green-600 text-white px-8 py-4 rounded-sm m-4"
-          >
-            Buy
-          </button>
-        </div>
-        <div className="border bg-slate-100 p-2">
-          <h1>Delivery Addresses</h1>
+        <button
+          onClick={handleBuyNow}
+          className="text-2xl bg-green-600 text-white px-8 py-4 rounded-lg shadow-md hover:bg-green-700"
+        >
+          Buy Now
+        </button>
+        <div className="border rounded-lg bg-gray-50 p-4 mt-6">
+          <h2 className="text-2xl font-semibold mb-4">Delivery Addresses</h2>
           {userAddresses.length > 0 ? (
-            <>
-              <div className="flex gap-8">
-                {userAddresses.map((address) => (
-                  <div className="border p-4 " key={address.user_address_id}>
-                    <input
-                      type="radio"
-                      name="selectAddress"
-                      id={`address-${address.user_address_id}`}
-                      checked={chosenAddress === address.user_address_id}
-                      onChange={() =>
-                        handleAddressChange(address.user_address_id)
-                      }
-                    />
-                    <p>{address.street}</p>
-                    <p>{address.village}</p>
-                    <p>{address.taluk}</p>
-                    <p>{address.district}</p>
-                    <p>{address.pin_code}</p>
-                    <p>{address.contact_number}</p>
-                  </div>
-                ))}
-              </div>
-            </>
+            <div className="space-y-4">
+              {userAddresses.map((address) => (
+                <div
+                  className={`border p-4 rounded-lg ${
+                    chosenAddress === address.user_address_id
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-300"
+                  }`}
+                  key={address.user_address_id}
+                >
+                  <input
+                    type="radio"
+                    name="selectAddress"
+                    id={`address-${address.user_address_id}`}
+                    checked={chosenAddress === address.user_address_id}
+                    onChange={() =>
+                      handleAddressChange(address.user_address_id)
+                    }
+                    className="mr-2"
+                  />
+                  <p className="font-medium">
+                    {address.street}, {address.village}, {address.taluk},{" "}
+                    {address.district} - {address.pin_code}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Contact: {address.contact_number}
+                  </p>
+                </div>
+              ))}
+            </div>
           ) : (
-            <>No Addresses</>
+            <p className="text-center text-gray-500">No Addresses Available</p>
           )}
         </div>
       </div>

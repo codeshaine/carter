@@ -12,6 +12,8 @@ function SignUp() {
       await axios.post("api/seller/signup", formObject);
       navigate("/");
     } catch (err) {
+      if (err.response.status === 401)
+        return toast.error("Please login as user begore  proceeding");
       console.log(err);
       if (err.response) {
         toast.error(err.response.data.message);
@@ -25,6 +27,12 @@ function SignUp() {
       <div>
         <Toaster />
       </div>
+      <button
+        className="bg-blue-700 text-white rounded-md px-4 py-2"
+        onClick={() => navigate("/")}
+      >
+        Home
+      </button>
       <div className="w-full lg:p-12 pt-10">
         <div className="flex w-full max-w-sm mx-auto overflow-hidden bg-white rounded-lg shadow-lg dark:bg-gray-800 lg:max-w-xl">
           <form onSubmit={handleSubmit} className="w-full px-6 py-8 md:px-8 ">
@@ -43,7 +51,7 @@ function SignUp() {
                 id="LoggingEmailAddress"
                 className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-blue-300"
                 type="text"
-                name="name"
+                name="seller_name"
               />
             </div>
             <div className="mt-4">
@@ -54,7 +62,7 @@ function SignUp() {
                 id="LoggingEmailAddress"
                 className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-blue-300"
                 type="email"
-                name="sellerEmail"
+                name="seller_email"
               />
             </div>
             <div className="mt-4">
@@ -65,7 +73,7 @@ function SignUp() {
                 id="LoggingEmailAddress"
                 className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-blue-300"
                 type="text"
-                name="contactNumber"
+                name="seller_contact_number"
               />
             </div>
             <div className="mt-4">
@@ -76,7 +84,7 @@ function SignUp() {
                 id="LoggingEmailAddress"
                 className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-blue-300"
                 type="text"
-                name="sellerAddress"
+                name="seller_address"
               />
             </div>
 
