@@ -19,7 +19,7 @@ function ManageOrderedProducts() {
         toast.error(err.response.data.message);
       }
     })();
-  }, []);
+  }, [navigate]);
 
   const markAsDelivered = async (orderId) => {
     const confirmDelivery = window.confirm(

@@ -19,7 +19,7 @@ function MyOrders() {
         toast.error(err.response.data.message);
       }
     })();
-  }, []);
+  }, [navigate]);
 
   const cancelOrder = async (orderId) => {
     const confirmPrice = confirm("are you sure you want to cancel the order ?");

@@ -25,7 +25,7 @@ function BuyNow() {
         console.error(err.response.data.message);
       }
     })();
-  }, [slugId]);
+  }, [navigate, productDetails, slugId, userAddresses]);
 
   const handleBuyNow = async () => {
     try {

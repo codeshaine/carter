@@ -21,7 +21,7 @@ function Cart() {
         console.error(err.response.data.message);
       }
     })();
-  }, []);
+  }, [navigate]);
 
   const orderNow = async () => {
     try {

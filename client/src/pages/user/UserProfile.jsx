@@ -26,7 +26,7 @@ function UserProfile() {
         }
       }
     })();
-  }, []);
+  }, [navigate]);
 
   const handleUserUpdate = async () => {
     const formData = new FormData();

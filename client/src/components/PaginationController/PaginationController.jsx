@@ -1,3 +1,4 @@
+// eslint-disable-next-line react/prop-types
 const PaginationControls = ({ currentPage, totalPages, onPageChange }) => {
   return (
     <div className="flex justify-center items-center mt-4 space-x-2">

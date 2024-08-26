@@ -165,15 +165,15 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 function UserAddressForm() {
-  const [formData, setFormData] = useState({
-    street: "",
-    village: "",
-    taluk: "",
-    district: "",
-    state: "",
-    contactNumber: "",
-    pinCode: "",
-  });
+  // const [formData, setFormData] = useState({
+  //   street: "",
+  //   village: "",
+  //   taluk: "",
+  //   district: "",
+  //   state: "",
+  //   contactNumber: "",
+  //   pinCode: "",
+  // });
 
   const [addresses, setAddresses] = useState([]);
   const navigate = useNavigate();
@@ -189,7 +189,7 @@ function UserAddressForm() {
         toast.error(err.response ? err.response.data.message : "Network Error");
       }
     })();
-  }, []);
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

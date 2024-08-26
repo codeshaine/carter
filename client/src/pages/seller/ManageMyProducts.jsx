@@ -103,7 +103,7 @@ function ManageMyProducts() {
         toast.error("Failed to fetch products");
       }
     })();
-  }, []);
+  }, [navigate]);
 
   async function handleDeleteProduct(slugId) {
     try {
