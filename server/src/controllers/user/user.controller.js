@@ -130,6 +130,7 @@ export async function handlePushReview(req, res) {
       },
       select: {
         product_id: true,
+        order: true,
         seller: {
           select: {
             user_id: true,
@@ -139,6 +140,19 @@ export async function handlePushReview(req, res) {
     });
     if (!product) {
       throw new ApiError(400, "Product not found");
+    }
+
+    let purchaseed = false;
+    product.order.map((order) => {
+      if (
+        order.user_id === req.user.user_id &&
+        order.delivery_status === true
+      ) {
+        purchaseed = true;
+      }
+    });
+    if (!purchaseed) {
+      throw new ApiError(400, "Purchase the product in order to  review");
     }
     if (req.user.user_id === product.seller.user_id) {
       throw new ApiError(400, "You cant review your own product");
@@ -192,7 +206,7 @@ export async function handleDeleteReview(req, res) {
       throw new ApiError(err.statuscode, err.message, err.stack);
     }
     if (err.code === "P2025" && err.meta?.cause.includes("not exist")) {
-      throw new ApiError(400, "No review exist", err);
+      throw new ApiError(400, "This review doesnt belong to you", err);
     }
     throw new ApiError(500, "Deletetion Failed", err);
   }
@@ -545,6 +559,7 @@ export async function handleGetCartItems(req, res) {
             product: {
               select: {
                 name: true,
+                slug: true,
                 product_images: true,
                 price: true,
                 category: true,

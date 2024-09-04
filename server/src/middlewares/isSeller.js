@@ -4,7 +4,7 @@ import { ApiResponse } from "../services/index.js";
 export async function isSeller(req, res, next) {
   //TODO remove this
   if (!req.user?.isSeller) {
-    return res.status(403).json(new ApiResponse(403, "unauthorized seller"));
+    return res.status(401).json(new ApiResponse(401, "unauthorized seller"));
   }
 
   const seller = await prismaClient.sellers.findFirst({

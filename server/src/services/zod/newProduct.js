@@ -12,7 +12,7 @@ export function validateProductBody(value) {
       "Books",
       "Furniture",
       "Toys",
-      "Others",
+      "Accessories",
     ]),
     stock: z.number().min(0, "Invalid stock number"),
     tags: z.array(z.string()).optional(), //TODO may remove this depending on the need
@@ -45,7 +45,7 @@ export function validateUpdateProductBody(value) {
       "Books",
       "Furniture",
       "Toys",
-      "Others",
+      "Accessories",
     ]),
     tags: z.array(z.string()).optional(), //TODO may remove this depending on the need
   });

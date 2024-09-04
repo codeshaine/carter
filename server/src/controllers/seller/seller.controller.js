@@ -1,4 +1,3 @@
-import { json } from "express";
 import prismaClient from "../../clients/prismaClient.js";
 import redisClient from "../../clients/redisCleint.js";
 import {
@@ -310,36 +309,48 @@ export async function handleDeleteProduct(req, res) {
 
 export async function handleGetAllSellerProducts(req, res) {
   const sellerId = parseInt(req.seller.seller_id);
+  const limit = parseInt(req.query.limit, 10) || 6;
+  const page = parseInt(req.query.page, 10) || 1;
   //just incase
   if (!sellerId) {
     throw new ApiError(403, "invalid seller id");
   }
   //TODO reduce the cache time
-  const CACHE_KEY = "all_seller_product";
+  const CACHE_KEY = "all_seller_products_" + sellerId;
   const CACHE_EXPIRATION = 5;
-  const cachedProductData = await redisClient.get(CACHE_KEY);
-  if (cachedProductData) {
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          "all the product details",
-          JSON.parse(cachedProductData)
-        )
-      );
-  }
+  // const cachedProductData = await redisClient.get(CACHE_KEY);
+  // if (cachedProductData) {
+  //   return res
+  //     .status(200)
+  //     .json(
+  //       new ApiResponse(
+  //         200,
+  //         "all the product details",
+  //         JSON.parse(cachedProductData)
+  //       )
+  //     );
+  // }
+  let totalNumberOfProduct = 0;
   try {
+    const temp = await prismaClient.products.count({
+      where: {
+        seller_id: sellerId,
+      },
+    });
+    totalNumberOfProduct = temp;
     const productData = await prismaClient.products.findMany({
       where: {
         seller_id: sellerId,
       },
+      take: limit,
+      skip: (page - 1) * limit,
       select: {
         product_id: true,
         name: true,
         slug: true,
         sub_name: true,
         price: true,
+        stock: true,
         product_images: {
           select: {
             image_url: true,
@@ -351,10 +362,13 @@ export async function handleGetAllSellerProducts(req, res) {
       throw new ApiError(400, "No product found for the seller");
     }
 
-    redisClient.setex(CACHE_KEY, CACHE_EXPIRATION, JSON.stringify(productData));
-    return res
-      .status(200)
-      .json(new ApiResponse(200, "Product details of seller", productData));
+    // redisClient.setex(CACHE_KEY, CACHE_EXPIRATION, JSON.stringify(productData));
+    return res.status(200).json(
+      new ApiResponse(200, "Product details of seller", {
+        productData,
+        totalNumberOfProduct,
+      })
+    );
   } catch (err) {
     console.error(err);
     if (err instanceof ApiError) {
@@ -371,23 +385,35 @@ export async function handleGetAllSellerProducts(req, res) {
 export async function handleOrderedSellerItems(req, res) {
   const CACHE_KEY = "seller_ordered_list_" + req.seller.seller_id;
   const CACHE_EXPIRATION = 5;
-  const cachedData = await redisClient.get(CACHE_KEY);
-  if (cachedData) {
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(200, "Got the ordered products", JSON.parse(cachedData))
-      );
-  }
+  const limit = parseInt(req.query.limit, 10) || 6;
+  const page = parseInt(req.query.page, 10) || 1;
+  // const cachedData = await redisClient.get(CACHE_KEY);
+  // if (cachedData) {
+  //   return res
+  //     .status(200)
+  //     .json(
+  //       new ApiResponse(200, "Got the ordered products", JSON.parse(cachedData))
+  //     );
+  // }
 
-  console.log(req.seller.seller_id);
+  // console.log(req.seller.seller_id);
   try {
+    const temp = await prismaClient.orders.count({
+      where: {
+        product: {
+          seller_id: req.seller.seller_id,
+        },
+      },
+    });
+    const totalNumberOfOrders = temp;
     const orderedItems = await prismaClient.orders.findMany({
       where: {
         product: {
           seller_id: req.seller.seller_id,
         },
       },
+      take: limit,
+      skip: (page - 1) * limit,
       include: {
         product: {
           select: {
@@ -409,15 +435,20 @@ export async function handleOrderedSellerItems(req, res) {
       },
     });
 
-    redisClient.setex(
-      CACHE_KEY,
-      CACHE_EXPIRATION,
-      JSON.stringify(orderedItems)
-    );
+    // redisClient.setex(
+    //   CACHE_KEY,
+    //   CACHE_EXPIRATION,
+    //   JSON.stringify(orderedItems)
+    // );
 
     res
       .status(200)
-      .json(new ApiResponse(200, "Got the ordered products", orderedItems));
+      .json(
+        new ApiResponse(200, "Got the ordered products", {
+          orderedItems,
+          totalNumberOfOrders,
+        })
+      );
   } catch (err) {
     console.error(err);
     if (err instanceof ApiError) {

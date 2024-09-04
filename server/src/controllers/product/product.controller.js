@@ -6,7 +6,6 @@ import { number } from "zod";
 //gets top 10 new products
 export async function handleGetNewProducts(req, res) {
   const limit = parseInt(req.query?.limit) || 10;
-  console.log(limit);
   const CACHE_KEY = "get_top_" + limit;
   const CACHE_EXPIRATION = 60 * 60; // 1 hour in seconds
   const cachedProductData = await redisClient.get(CACHE_KEY);
@@ -42,23 +41,25 @@ export async function handleGetNewProducts(req, res) {
 }
 
 export async function handleGetProductsWithFilter(req, res) {
-  const productname = req.params.name;
+  let productname = req.params.name;
   const lower_bound = parseFloat(req.query.lb) || 0;
   const upper_bound = parseFloat(req.query.ub) || Number.MAX_SAFE_INTEGER;
   //! implemnt the limit  for pagination
   const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 6;
+  const limit = parseInt(req.query.limit, 10) || 8;
   const category = req.query.cat;
 
+  if (productname == "all") {
+    productname = "";
+  }
   let totalNumberOfProduct = 0;
-  const TOATL_NUMBER_OF_PRODUCT = "total_product_count";
   try {
     const whereCondition = {
       AND: [
         {
           price: {
-            gt: lower_bound,
-            lt: upper_bound,
+            gte: lower_bound,
+            lte: upper_bound,
           },
         },
         {
@@ -75,16 +76,11 @@ export async function handleGetProductsWithFilter(req, res) {
                 mode: "insensitive",
               },
             },
-            {
-              category: {
-                contains: productname,
-                mode: "insensitive",
-              },
-            },
           ],
         },
       ],
     };
+
     if (category) {
       whereCondition.AND.push({
         category: category,

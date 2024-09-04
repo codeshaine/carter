@@ -30,7 +30,7 @@ const userRouter = express.Router();
 userRouter.get("/", isAuthenticated, handler(handleGetUserInfo));
 userRouter.post("/signup", handler(signUp));
 userRouter.post("/signin", handler(signIn));
-userRouter.get("/logout", handler(signOut));
+userRouter.post("/logout", handler(signOut));
 
 //**********manage profile********************
 userRouter.post(
