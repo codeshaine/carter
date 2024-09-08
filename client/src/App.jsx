@@ -58,7 +58,6 @@ function App() {
         <Route key="products" path="/product/:slugId" element={<Product />} />
 
         <Route key="myOrders" path="/user/my-orders" element={<MyOrders />} />
-        {/* <Route key="specific" path="specific/:eventid" element={<Specific />} /> */}
 
         <Route
           key="buynow"

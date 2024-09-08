@@ -1,28 +1,18 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
+import { useFetch } from "../../hooks/useFetch";
+import Loader from "../../components/Loader/Loader";
 
 function MyOrders() {
-  const [orderedItems, setOrderedItems] = useState([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const resorderedItems = await axios.get(
-          "/api/user/product/ordered-items"
-        );
-        setOrderedItems(resorderedItems.data.data);
-      } catch (err) {
-        if (err.response.status === 401) navigate("/login");
-        toast.error(err.response.data.message);
-      }
-    })();
-  }, [navigate]);
-
+  const [orderedItems, setOrderedItems, orderError, orderLoading] = useFetch(
+    "/api/user/product/ordered-items",
+    [navigate]
+  );
   const cancelOrder = async (orderId) => {
     const confirmPrice = confirm("Are you sure you want to cancel the order?");
     if (confirmPrice) {
@@ -37,6 +27,12 @@ function MyOrders() {
       }
     }
   };
+
+  console.log("Error:\nOrdered Error:", orderError);
+
+  if (orderLoading) {
+    return <Loader />;
+  }
 
   return (
     <>

@@ -1,284 +1,3 @@
-// import { useState } from "react";
-// import axios from "axios";
-// import toast, { Toaster } from "react-hot-toast";
-// import { useNavigate } from "react-router-dom";
-
-// export default function Auth() {
-//   const [isSignUp, setIsSignUp] = useState(false);
-//   const [name, setName] = useState("");
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const [confirmPassword, setConfirmPassword] = useState("");
-//   const navigate = useNavigate();
-
-//   async function signup() {
-//     if (password !== confirmPassword) {
-//       console.log("Passwords do not match");
-//       return;
-//     }
-//     try {
-//       const res = await axios.post("/api/user/signup", {
-//         name,
-//         email,
-//         password,
-//       });
-
-//       // console.log(res);
-//       toast.success(res.data.message);
-//       setTimeout(() => {
-//         navigate("/");
-//       }, 400);
-//     } catch (err) {
-//       toast.error(err.response.data.message);
-//       console.error(err.response.data);
-//     }
-//   }
-
-//   async function login() {
-//     try {
-//       const res = await axios.post("/api/user/signin", {
-//         email,
-//         password,
-//       });
-
-//       // console.log(res);
-//       toast.success(res.data.message);
-//       setTimeout(() => {
-//         navigate("/");
-//       }, 400);
-//     } catch (err) {
-//       toast.error(err.response.data.message);
-//       console.error(err.response.data);
-//     }
-//   }
-
-//   async function check() {
-//     try {
-//       const res = await axios.get("/api/user/check");
-//       console.log(res.data);
-//     } catch (err) {
-//       console.error(err.response.data);
-//     }
-//   }
-
-//   async function loginWithGoogle() {
-//     window.open(
-//       `${import.meta.env.VITE_BACKEND_API_URL}/api/user/auth/google`,
-//       "_self"
-//     );
-//   }
-
-//   async function logout() {
-//     try {
-//       const res = await axios.get("/api/user/logout");
-//       console.log(res.data);
-//     } catch (err) {
-//       console.error(err.response.data);
-//     }
-//   }
-
-//   return (
-//     <>
-//       <div>
-//         <Toaster />
-//       </div>
-//       <div>
-//         <button
-//           className="bg-blue-700 text-white rounded-md px-4 py-2"
-//           onClick={() => navigate("/")}
-//         >
-//           Home
-//         </button>
-//       </div>
-//       <div className="mt-40 lg:mt-10 md:mt-20">
-//         {isSignUp ? (
-//           <div className="flex w-full max-w-sm mx-auto overflow-hidden bg-white rounded-lg shadow-lg dark:bg-gray-800 lg:max-w-4xl">
-//             {/* <div className="hidden bg-cover lg:block lg:w-1/2"></div> */}
-
-//             <div className="w-full px-6 py-8 md:px-8 lg:w-1/2">
-//               <div className="flex justify-center mx-auto">
-//                 <img
-//                   className="w-auto h-7 sm:h-8"
-//                   src="https://merakiui.com/images/logo.svg"
-//                   alt=""
-//                 />
-//               </div>
-
-//               <p className="mt-3 text-xl text-center text-gray-600 dark:text-gray-200">
-//                 Create Account
-//               </p>
-
-//               <div className="mt-4">
-//                 <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
-//                   Name
-//                 </label>
-//                 <input
-//                   id="LoggingEmailAddress"
-//                   className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-blue-300"
-//                   type="text"
-//                   onChange={(e) => setName(e.target.value)}
-//                 />
-//               </div>
-//               <div className="mt-4">
-//                 <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
-//                   Email Address
-//                 </label>
-//                 <input
-//                   id="LoggingEmailAddress"
-//                   className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-blue-300"
-//                   type="email"
-//                   onChange={(e) => setEmail(e.target.value)}
-//                 />
-//               </div>
-//               <div className="mt-4">
-//                 <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
-//                   Password
-//                 </label>
-//                 <input
-//                   id="LoggingEmailAddress"
-//                   className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-blue-300"
-//                   type="password"
-//                   onChange={(e) => setPassword(e.target.value)}
-//                 />
-//               </div>
-
-//               <div className="mt-4">
-//                 <div className="flex justify-between">
-//                   <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
-//                     Confirm Password
-//                   </label>
-//                 </div>
-
-//                 <input
-//                   id="loggingPassword"
-//                   className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-blue-300"
-//                   type="password"
-//                   onChange={(e) => setConfirmPassword(e.target.value)}
-//                 />
-//               </div>
-
-//               <div className="mt-6">
-//                 <button
-//                   onClick={signup}
-//                   className="w-full px-6 py-3 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50"
-//                 >
-//                   Sign Up
-//                 </button>
-//               </div>
-
-//               <div className="flex items-center justify-between mt-4">
-//                 <span className="w-1/5 border-b dark:border-gray-600 md:w-1/4"></span>
-
-//                 <div
-//                   onClick={() => setIsSignUp(!isSignUp)}
-//                   className="cursor-pointer text-xs text-gray-500 uppercase dark:text-gray-400 hover:underline"
-//                 >
-//                   Already have an Account?
-//                 </div>
-
-//                 <span className="w-1/5 border-b dark:border-gray-600 md:w-1/4"></span>
-//               </div>
-//             </div>
-//           </div>
-//         ) : (
-//           <div className="flex w-full max-w-sm mx-auto overflow-hidden bg-white rounded-lg shadow-lg dark:bg-gray-800 lg:max-w-4xl">
-//             {/* <div className="hidden bg-cover lg:block lg:w-1/2"></div> */}
-
-//             <div className="w-full px-6 py-8 md:px-8 lg:w-1/2">
-//               <div className="flex justify-center mx-auto">
-//                 <img
-//                   className="w-auto h-7 sm:h-8"
-//                   src="https://merakiui.com/images/logo.svg"
-//                   alt=""
-//                 />
-//               </div>
-
-//               <p className="mt-3 text-xl text-center text-gray-600 dark:text-gray-200">
-//                 Welcome back!
-//               </p>
-
-//               <div
-//                 onClick={loginWithGoogle}
-//                 className="flex items-center cursor-pointer  justify-center mt-4 text-gray-600 transition-colors duration-300 transform border rounded-lg dark:border-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600"
-//               >
-//                 <span className="w-5/6 px-4 py-3 font-bold text-center">
-//                   Sign in with Google
-//                 </span>
-//               </div>
-
-//               <div className="flex items-center justify-between mt-4">
-//                 <span className="w-1/5 border-b dark:border-gray-600 lg:w-1/4"></span>
-
-//                 <span className="text-xs text-center text-gray-500 uppercase dark:text-gray-400 hover:underline">
-//                   or login with email
-//                 </span>
-
-//                 <span className="w-1/5 border-b dark:border-gray-400 lg:w-1/4"></span>
-//               </div>
-
-//               <div className="mt-4">
-//                 <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
-//                   Email Address
-//                 </label>
-//                 <input
-//                   id="LoggingEmailAddress"
-//                   className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-blue-300"
-//                   type="email"
-//                   onChange={(e) => setEmail(e.target.value)}
-//                 />
-//               </div>
-
-//               <div className="mt-4">
-//                 <div className="flex justify-between">
-//                   <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
-//                     Password
-//                   </label>
-//                 </div>
-
-//                 <input
-//                   id="loggingPassword"
-//                   className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-blue-300"
-//                   type="password"
-//                   onChange={(e) => setPassword(e.target.value)}
-//                 />
-//               </div>
-
-//               <div className="mt-6">
-//                 <button
-//                   onClick={login}
-//                   className="w-full px-6 py-3 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-gray-800 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50"
-//                 >
-//                   Sign In
-//                 </button>
-//               </div>
-
-//               <div className="flex items-center justify-between mt-4">
-//                 <span className="w-1/5 border-b dark:border-gray-600 md:w-1/4"></span>
-
-//                 <div
-//                   onClick={() => setIsSignUp(!isSignUp)}
-//                   className="cursor-pointer text-xs text-gray-500 uppercase dark:text-gray-400 hover:underline"
-//                 >
-//                   dont have an Account?
-//                 </div>
-
-//                 <span className="w-1/5 border-b dark:border-gray-600 md:w-1/4"></span>
-//               </div>
-//             </div>
-//           </div>
-//         )}
-//         <div>
-//           <button onClick={check}>Check</button>
-//         </div>
-
-//         <div>
-//           <button onClick={logout}>Logout</button>
-//         </div>
-//       </div>
-//     </>
-//   );
-// }
-
 import { useState } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
@@ -295,16 +14,16 @@ export default function Auth() {
 
   async function signup() {
     if (password !== confirmPassword) {
-      console.log("Passwords do not match");
+      toast.error("Password do not match");
       return;
     }
+
     try {
       const res = await axios.post("/api/user/signup", {
         name,
         email,
         password,
       });
-
       toast.success(res.data.message);
       setTimeout(() => {
         navigate("/");
@@ -332,29 +51,11 @@ export default function Auth() {
     }
   }
 
-  async function check() {
-    try {
-      const res = await axios.get("/api/user/check");
-      console.log(res.data);
-    } catch (err) {
-      console.error(err.response.data);
-    }
-  }
-
   async function loginWithGoogle() {
     window.open(
       `${import.meta.env.VITE_BACKEND_API_URL}/api/user/auth/google`,
       "_self"
     );
-  }
-
-  async function logout() {
-    try {
-      const res = await axios.get("/api/user/logout");
-      console.log(res.data);
-    } catch (err) {
-      console.error(err.response.data);
-    }
   }
 
   return (
@@ -504,7 +205,7 @@ export default function Auth() {
                   onClick={() => setIsSignUp(!isSignUp)}
                   className="cursor-pointer text-xs text-gray-500 hover:underline"
                 >
-                  Don't have an Account?
+                  Don&apos;t have an Account?
                 </div>
                 <span className="w-1/5 border-b border-slate-300"></span>
               </div>

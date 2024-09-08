@@ -1,153 +1,15 @@
-// import axios from "axios";
-// import { useEffect, useState } from "react";
-// import toast, { Toaster } from "react-hot-toast";
-// import { useNavigate } from "react-router-dom";
-
-// function UserProfile() {
-//   const [name, setName] = useState("");
-//   const [email, setEmail] = useState("");
-//   const [profile, setProfile] = useState(null);
-//   const [profilePicUrl, setProfilePicUrl] = useState("");
-//   const navigate = useNavigate();
-
-//   useEffect(() => {
-//     (async () => {
-//       try {
-//         const { data } = await axios.get("/api/user");
-//         setName(data.data.name);
-//         setProfilePicUrl(data.data.profile_url);
-//         setEmail(data.data.email);
-//       } catch (err) {
-//         console.log(err);
-//         if (err.response.status === 401) navigate("/login");
-//         if (err.response) {
-//           toast.error(err.response.data.message);
-//         } else {
-//           toast.error("Network Error");
-//         }
-//       }
-//     })();
-//   }, [navigate]);
-
-//   const handleUserUpdate = async () => {
-//     const formData = new FormData();
-//     formData.append("name", name);
-//     formData.append("image", profile);
-
-//     try {
-//       await axios.post("/api/user/profile/update", formData);
-//       toast.success("Updated successfully");
-//     } catch (err) {
-//       if (err.response) {
-//         toast.error(err.response.data.message);
-//       } else {
-//         toast.error("Network Error");
-//       }
-//     }
-//   };
-
-//   const handleUserLogout = async () => {
-//     try {
-//       const { data } = await axios.get("/api/user/logout");
-//       toast.success(data.data.message);
-//     } catch (err) {
-//       if (err.response) {
-//         toast.error(err.response.data.message);
-//       } else {
-//         toast.error("Network Error");
-//       }
-//     }
-//   };
-
-//   return (
-//     <>
-//       <Toaster />
-//       <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-slate-200 to-white p-4">
-//         <div className="bg-white shadow-lg rounded-lg max-w-lg w-full">
-//           <div className="p-6 flex flex-col items-center">
-//             <h1 className="text-3xl font-extrabold text-gray-800 mb-6">
-//               User Profile
-//             </h1>
-//             <img
-//               src={profilePicUrl}
-//               alt="User Profile"
-//               className="w-32 h-32 rounded-full mb-6 object-cover shadow-md"
-//             />
-//             <div className="w-full mb-6">
-//               <label className="block text-sm font-semibold text-gray-600 mb-2">
-//                 Full Name
-//               </label>
-//               <input
-//                 type="text"
-//                 value={name}
-//                 onChange={(e) => setName(e.target.value)}
-//                 placeholder="Enter your name"
-//                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400"
-//               />
-//             </div>
-//             <div className="w-full mb-6">
-//               <label className="block text-sm font-semibold text-gray-600 mb-2">
-//                 Email
-//               </label>
-//               <input
-//                 type="email"
-//                 value={email}
-//                 disabled
-//                 placeholder="Email"
-//                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed focus:outline-none"
-//               />
-//             </div>
-//             <div className="w-full mb-6">
-//               <label className="block text-sm font-semibold text-gray-600 mb-2">
-//                 Profile Image
-//               </label>
-//               <input
-//                 type="file"
-//                 onChange={(e) => setProfile(e.target.files[0])}
-//                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none"
-//               />
-//             </div>
-//             <div className="flex gap-4 w-full">
-//               <button
-//                 onClick={handleUserUpdate}
-//                 className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-all"
-//               >
-//                 Update
-//               </button>
-//               <button
-//                 className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-600 transition-all"
-//                 onClick={() => navigate("/user/addresses")}
-//               >
-//                 View Addresses
-//               </button>
-//               <button
-//                 onClick={handleUserLogout}
-//                 className="w-full bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-all"
-//               >
-//                 Log Out
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </>
-//   );
-// }
-
-// export default UserProfile;
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 
 function UserProfile() {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const email = useRef(null);
+  const profilePicUrl = useRef(null);
   const [profile, setProfile] = useState(null);
-  const [profilePicUrl, setProfilePicUrl] = useState("");
-  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -155,8 +17,8 @@ function UserProfile() {
       try {
         const { data } = await axios.get("/api/user");
         setName(data.data.name);
-        setProfilePicUrl(data.data.profile_url);
-        setEmail(data.data.email);
+        email.current = data.data.email;
+        profilePicUrl.current = data.data.profile_url;
       } catch (err) {
         console.log(err);
         if (err.response.status === 401) navigate("/login");
@@ -174,7 +36,7 @@ function UserProfile() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfilePicUrl(reader.result);
+        profilePicUrl.current = reader.result;
         setProfile(file);
       };
       reader.readAsDataURL(file);
@@ -190,7 +52,7 @@ function UserProfile() {
       await axios.post("/api/user/profile/update", formData);
       toast.success("Updated successfully");
     } catch (err) {
-      setError(err.response ? err.response.data.message : "Network Error");
+      toast.error(err.response ? err.response.data.message : "Network Error");
     }
   };
 
@@ -213,7 +75,7 @@ function UserProfile() {
           <div className="relative">
             <div className="w-full h-48 p-4 bg-gray-100 rounded-t-lg relative">
               <img
-                src={profilePicUrl || "default-profile-pic-url"}
+                src={profilePicUrl.current || "default-profile-pic-url"}
                 alt="User Profile"
                 className="w-full h-full object-contain rounded-t-lg"
               />
@@ -242,7 +104,7 @@ function UserProfile() {
             </div>
           </div>
           <div className="p-6">
-            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+            {/* {error && <p className="text-red-500 text-sm mb-4">{error}</p>} */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-600 mb-2">
                 Full Name
@@ -261,7 +123,7 @@ function UserProfile() {
               </label>
               <input
                 type="email"
-                value={email}
+                value={email.current}
                 disabled
                 placeholder="Email"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"

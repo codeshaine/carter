@@ -1,16 +1,3 @@
-what is done
-
-(havent tested)
-
-- update : seller , user, product
-
-what needs to done
-NOTE THAT YOU HAVENT MADE USE OF REDIS CLLIENT
-
--product rotue
-
-- file upload
-- pagination for routes with large list of data
 - meesage to seller and user mail on purchase and cancel product delivery
 - email sendign when user pruchase somehign and showing the pruchased item in the seller dashboard
 
@@ -21,24 +8,26 @@ NOTE THAT YOU HAVENT MADE USE OF REDIS CLLIENT
 -- REFACTOR THE QUERY COLMUN DATA
 -- meesage to seller mail on purchase and cancel product delivery
 -- Need to fix the redis time on differnt routes
-
+-- use context on frontend for cleaner look in the home page
+-- whenever perfrom delete need to optimise it from fb from removign from the array list for quiick changes
 Frontend
 
 have to use lazy loading later for performance optimiZation : code splitting
 pagination
 
-//done
-user update done
-seller
-seller update
-product
-logout need testing
+---
 
-//tomarrow onwards
-product page
-home page
-search and pagination
-buy now
-add to cart and order now
-order status
---cancel order
+TODO:8/9/2024 (fb)
+
+-custom hooks and state managemet
+-loader
+-context for protected routes
+-gloabal error
+
+- send them back on the protected route .implemnt this logic in the every page
+- minor bug in the cart page while deleting state is not being updated
+
+- lazy and infinite scrolling
+- react hooks for further opimization
+
+---

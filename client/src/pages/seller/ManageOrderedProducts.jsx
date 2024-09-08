@@ -5,29 +5,22 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import PaginationControls from "../../components/PaginationController/PaginationController";
+import Loader from "../../components/Loader/Loader";
+import { useFetch } from "../../hooks/useFetch";
 
 function ManageOrderedProducts() {
-  const [orderedItems, setOrderedItems] = useState([]);
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPageNumber, setTotalPageNumber] = useState(1);
   const limit = 8;
+  const [data, setData, orderError, orderLoading] = useFetch(
+    `/api/seller/products/ordered-list?limit=${limit}&page=${currentPage}`,
+    [(navigate, currentPage)]
+  );
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await axios.get(
-          `/api/seller/products/ordered-list?limit=${limit}&page=${currentPage}`
-        );
-        setOrderedItems(res.data.data.orderedItems);
-        setTotalPageNumber(
-          Math.ceil(res.data.data.totalNumberOfOrders / limit)
-        );
-      } catch (err) {
-        if (err.response.status === 401) navigate("/seller/signup");
-        toast.error(err.response.data.message);
-      }
-    })();
-  }, [navigate, currentPage]);
+    if (data?.totalNumberOfOrders)
+      setTotalPageNumber(Math.ceil(data.totalNumberOfOrders / limit));
+  }, [data?.totalNumberOfOrders]);
 
   const markAsDelivered = async (orderId) => {
     const confirmDelivery = window.confirm(
@@ -38,19 +31,23 @@ function ManageOrderedProducts() {
       try {
         await axios.post(`/api/seller/products/delivery/done/${orderId}`);
         toast.success("Order marked as delivered.");
-        setOrderedItems((prevItems) =>
-          prevItems.map((item) =>
+        setData((prevItems) => ({
+          ...prevItems,
+          orderedItems: prevItems.map((item) =>
             item.order_id === orderId
               ? { ...item, delivery_status: true }
               : item
-          )
-        );
+          ),
+        }));
       } catch (err) {
         toast.error("Failed to mark as delivered.");
       }
     }
   };
 
+  console.log("Error:\nOrdered Error:", orderError);
+
+  if (orderLoading) return <Loader />;
   return (
     <>
       <Navbar />
@@ -61,8 +58,8 @@ function ManageOrderedProducts() {
           Our Orders
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {orderedItems.length > 0 ? (
-            orderedItems.map((item) => (
+          {data.orderedItems?.length > 0 ? (
+            data.orderedItems.map((item) => (
               <div
                 key={item.order_id}
                 className="bg-white p-4 border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"

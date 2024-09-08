@@ -1,44 +1,40 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import PaginationControls from "../../components/PaginationController/PaginationController";
+import Loader from "../../components/Loader/Loader";
+import { useFetch } from "../../hooks/useFetch";
 
 function ManageMyProducts() {
-  const [productData, setProductData] = useState([]);
   const navigate = useNavigate();
   const limit = 8;
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPageNumber, setTotalPageNumber] = useState(1);
 
+  const [data, setData, productError, productLoading] = useFetch(
+    `/api/seller/products?limit=${limit}&page=${currentPage}`,
+    [navigate, currentPage]
+  );
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await axios.get(
-          `/api/seller/products?limit=${limit}&page=${currentPage}`
-        );
-        setProductData(res.data.data.productData);
-        setTotalPageNumber(
-          Math.ceil(res.data.data.totalNumberOfProduct / limit)
-        );
-      } catch (err) {
-        if (err.response.status === 401) navigate("/seller/signup");
-        console.log(err);
-        toast.error("Failed to fetch products");
-      }
-    })();
-  }, [navigate, currentPage]);
+    if (data?.totalNumberOfProduct) {
+      setTotalPageNumber(Math.ceil(data.totalNumberOfProduct / limit));
+    }
+  }, [data?.totalNumberOfProduct]);
 
   async function handleDeleteProduct(slugId) {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
         const res = await axios.delete(`/api/seller/product/delete/${slugId}`);
         toast.success(res.data.message);
-        setProductData((prevData) =>
-          prevData.filter((product) => product.slug !== slugId)
-        );
+        setData((prevData) => ({
+          ...prevData,
+          productData: prevData.productData.filter(
+            (product) => product.slug !== slugId
+          ),
+        }));
       } catch (err) {
         console.log(err);
         toast.error("Failed to delete product");
@@ -50,6 +46,9 @@ function ManageMyProducts() {
     navigate(`/product/${slugId}`);
   }
 
+  console.log("Error:\n Product Eror:\n", productError);
+  if (productLoading) return <Loader />;
+
   return (
     <>
       <Navbar />
@@ -57,8 +56,8 @@ function ManageMyProducts() {
         <Toaster />
         <h1 className="text-3xl font-bold mb-6 text-gray-800">My Products</h1>
         <div className="w-full max-w-4xl space-y-4">
-          {productData.length > 0 ? (
-            productData.map((product) => (
+          {data.productData?.length > 0 ? (
+            data.productData.map((product) => (
               <div
                 className="bg-white border border-gray-200 rounded-lg shadow-md p-4 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4"
                 key={product.slug}

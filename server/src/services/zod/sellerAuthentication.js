@@ -3,7 +3,6 @@ import { z } from "zod";
 export function validateSellerBody(value) {
   const sellerSchema = z.object({
     seller_name: z.string("must be a string").min(1, "Seller name is required"),
-    // logoUrl: z.string().url("Invalid logo URL").optional(),
     seller_address: z.string().min(1, "Seller address is required"),
     seller_contact_number: z
       .string()

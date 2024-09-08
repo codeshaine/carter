@@ -1,52 +1,44 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import PaginationControls from "../components/PaginationController/PaginationController";
 import Footer from "../components/Footer/Footer";
 import { FaFilter, FaRupeeSign } from "react-icons/fa";
+import { useFetch } from "../hooks/useFetch";
+import Loader from "../components/Loader/Loader";
 
 function ProductList() {
   const { nameParam } = useParams();
   const [searchParams] = useSearchParams();
   const catQuery = searchParams.get("cat") || "";
-  const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPageNumber, setTotalPageNumber] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(catQuery);
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const limit = 8;
 
+  const params = new URLSearchParams({
+    page: currentPage,
+    limit,
+    cat: selectedCategory,
+    lb: priceRange.min,
+    ub: priceRange.max,
+  });
+
+  const [products, , productError, productLoading] = useFetch(
+    `/api/product/f/${nameParam}?${params}`,
+    [nameParam, currentPage, selectedCategory, priceRange]
+  );
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({
-          page: currentPage,
-          limit,
-          cat: selectedCategory,
-          lb: priceRange.min,
-          ub: priceRange.max,
-        });
-        const res = await axios.get(`/api/product/f/${nameParam}?${params}`);
-        setProducts(res.data.data.pl);
-        setTotalPageNumber(Math.ceil(res.data.data.tp / limit));
-        setError(null);
-      } catch (err) {
-        setError(err.response?.data?.message || "Something went wrong");
-        setProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [nameParam, currentPage, selectedCategory, priceRange]);
+    setTotalPageNumber(Math.ceil(products.tp / limit));
+  }, [nameParam, products.tp]);
 
   const handlePageChange = (value) => {
     setCurrentPage(value);
   };
+  if (productError) console.log("Error:\nproduct error:\n", productError);
 
+  if (productLoading) return <Loader />;
   return (
     <>
       <Navbar />
@@ -56,7 +48,7 @@ function ProductList() {
         <div className="flex space-x-4">
           {/* Category Filter */}
           <div className="relative w-48">
-            <label className="block text-gray-800 font-semibold mb-2 flex items-center">
+            <label className=" text-gray-800 font-semibold mb-2 flex items-center">
               <FaFilter className="mr-2" /> Category
             </label>
             <select
@@ -76,7 +68,7 @@ function ProductList() {
 
           {/* Price Range Filter */}
           <div className="relative w-32">
-            <label className="block text-gray-800 font-semibold mb-2 flex items-center">
+            <label className=" text-gray-800 font-semibold mb-2 flex items-center">
               <FaRupeeSign className="mr-2" /> Min
             </label>
             <input
@@ -91,7 +83,7 @@ function ProductList() {
           </div>
 
           <div className="relative w-32">
-            <label className="block text-gray-800 font-semibold mb-2 flex items-center">
+            <label className=" text-gray-800 font-semibold mb-2 flex items-center">
               <FaRupeeSign className="mr-2" /> Max
             </label>
             <input
@@ -122,15 +114,13 @@ function ProductList() {
       <div className="container mx-auto p-6 bg-gradient-to-r from-white to-slate-200 min-h-screen my-4">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">
-            Search Results for "
-            <span className="text-gray-600">{nameParam}</span>"
+            Search Results for &quot;
+            <span className="text-gray-600">{nameParam}</span>&quot;
           </h1>
-          {loading && <p className="text-gray-600">Loading...</p>}
-          {error && <p className="text-red-600">{error}</p>}
         </div>
-        {products.length > 0 ? (
+        {products.pl?.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {products.map((product) => (
+            {products.pl.map((product) => (
               <div
                 key={product.product_id}
                 className="bg-white border border-gray-300 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg hover:border-gray-400"
@@ -188,13 +178,11 @@ function ProductList() {
             ))}
           </div>
         ) : (
-          !loading && (
-            <div className="flex justify-center items-center h-64 bg-gray-100 border border-gray-300 rounded-lg shadow-md">
-              <p className="text-gray-600 text-lg font-semibold">
-                No products found.
-              </p>
-            </div>
-          )
+          <div className="flex justify-center items-center h-64 bg-gray-100 border border-gray-300 rounded-lg shadow-md">
+            <p className="text-gray-600 text-lg font-semibold">
+              No products found.
+            </p>
+          </div>
         )}
         {products.length > 0 && (
           <PaginationControls

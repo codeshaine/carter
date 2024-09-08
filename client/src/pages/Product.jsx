@@ -1,235 +1,24 @@
-// import axios from "axios";
-// import { useEffect, useState } from "react";
-// import { useNavigate, useParams } from "react-router-dom";
-// import toast, { Toaster } from "react-hot-toast";
-
-// function Product() {
-//   const { slugId } = useParams();
-//   const navigate = useNavigate();
-
-//   const [quantity, setQuantity] = useState(1);
-//   const [productDetails, setProductDetails] = useState(null);
-
-//   useEffect(() => {
-//     if (!slugId) {
-//       navigate("/");
-//       return;
-//     }
-
-//     (async () => {
-//       try {
-//         const res = await axios.get(`/api/product/${slugId}`);
-//         setProductDetails(res.data.data);
-//       } catch (err) {
-//         console.error(err.response.data.message);
-//       }
-//     })();
-//   }, [slugId, navigate]);
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     const formData = new FormData(e.target);
-//     const data = Object.fromEntries(formData);
-//     data.star = parseInt(data.star);
-
-//     try {
-//       await axios.post(`/api/user/product/review/${slugId}`, data);
-//       toast.success("Review added successfully");
-//     } catch (err) {
-//       toast.error(err.response.data.message);
-//     }
-//   };
-
-//   const handleBuyNow = () => {
-//     navigate(`/user/buy-now/${productDetails.slug}/${quantity}`);
-//   };
-
-//   const handleAddToCart = async () => {
-//     try {
-//       await axios.post("/api/user/product/add-to-cart", {
-//         slug: productDetails.slug,
-//         quantity,
-//       });
-//       toast.success("Product added to cart");
-//     } catch (err) {
-//       toast.error(err.response.data.message);
-//     }
-//   };
-
-//   if (!productDetails) {
-//     return <div className="text-center py-10 text-slate-600">Loading...</div>;
-//   }
-
-//   return (
-//     <div className="container mx-auto p-6 bg-gray-50">
-//       <Toaster />
-//       <div className="flex flex-col lg:flex-row bg-white shadow-md rounded-lg overflow-hidden">
-//         <div className="lg:w-1/2 p-6">
-//           <img
-//             src={
-//               productDetails.product_images.length > 0
-//                 ? productDetails.product_images[0].image_url
-//                 : ""
-//             }
-//             alt={productDetails.name}
-//             className="w-full h-80 object-cover rounded-lg shadow-md"
-//           />
-//         </div>
-//         <div className="lg:w-1/2 p-6">
-//           <h1 className="text-3xl font-bold mb-2 text-slate-800">
-//             {productDetails.name}
-//           </h1>
-//           <h2 className="text-lg text-slate-500 mb-4">
-//             {productDetails.sub_name}
-//           </h2>
-//           <p className="text-2xl font-semibold text-slate-800 mb-2">
-//             ${productDetails.price}
-//           </p>
-//           <p className="text-slate-700 mb-4">{productDetails.description}</p>
-//           <p className="text-slate-600 mb-2">
-//             Category:{" "}
-//             <span className="font-medium text-slate-800">
-//               {productDetails.category}
-//             </span>
-//           </p>
-//           <p className="text-slate-600 mb-4">
-//             Seller:{" "}
-//             <span className="font-medium text-slate-800">
-//               {productDetails.seller.seller_name}
-//             </span>
-//           </p>
-//           <div className="flex gap-4 mb-4">
-//             <button
-//               onClick={handleBuyNow}
-//               className="bg-orange-600 text-white px-4 py-2 rounded-lg shadow hover:bg-orange-700 transition"
-//             >
-//               Buy Now
-//             </button>
-//             <button
-//               onClick={handleAddToCart}
-//               className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 transition"
-//             >
-//               Add to Cart
-//             </button>
-//           </div>
-//           <div className="flex items-center mb-4">
-//             <button
-//               onClick={() => setQuantity((q) => Math.max(q - 1, 1))}
-//               className="bg-slate-800 text-white px-4 py-2 rounded-l-lg shadow hover:bg-slate-900 transition"
-//             >
-//               -
-//             </button>
-//             <input
-//               type="text"
-//               value={quantity}
-//               readOnly
-//               className="border-t border-b border-slate-300 text-center px-4 py-2 w-24 text-slate-800"
-//             />
-//             <button
-//               onClick={() => setQuantity((q) => q + 1)}
-//               className="bg-slate-800 text-white px-4 py-2 rounded-r-lg shadow hover:bg-slate-900 transition"
-//             >
-//               +
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//       <section className="mt-10">
-//         <h2 className="text-2xl font-bold mb-6 text-slate-800">Reviews</h2>
-//         {productDetails.review.length > 0 ? (
-//           productDetails.review.map((review) => (
-//             <div
-//               key={review.review_id}
-//               className="border-b border-slate-300 p-4 flex items-start"
-//             >
-//               <img
-//                 src={review.user.profile_url}
-//                 alt={review.user.name}
-//                 className="w-16 h-16 rounded-full mr-4 shadow-md"
-//               />
-//               <div>
-//                 <h3 className="text-xl font-semibold text-slate-800">
-//                   {review.user.name}
-//                 </h3>
-//                 <p className="text-slate-600">{review.user.email}</p>
-//                 <p className="text-yellow-500">{"★".repeat(review.star)}</p>
-//                 <p className="text-slate-700">{review.review}</p>
-//               </div>
-//             </div>
-//           ))
-//         ) : (
-//           <p className="text-slate-600">No reviews yet</p>
-//         )}
-//       </section>
-//       <section className="mt-10">
-//         <h2 className="text-2xl font-bold mb-6 text-slate-800">
-//           Write a Review
-//         </h2>
-//         <form
-//           onSubmit={handleSubmit}
-//           className="bg-white p-6 rounded-lg shadow-md"
-//         >
-//           <input
-//             type="number"
-//             name="star"
-//             className="border border-slate-300 p-3 w-full mb-4 rounded-lg text-slate-800"
-//             placeholder="Rating (1-5)"
-//             min="1"
-//             max="5"
-//             required
-//           />
-//           <textarea
-//             name="review"
-//             className="border border-slate-300 p-3 w-full mb-4 rounded-lg text-slate-800"
-//             placeholder="Write your review"
-//             rows="4"
-//             required
-//           />
-//           <button
-//             type="submit"
-//             className="bg-slate-800 text-white px-4 py-2 rounded-lg shadow hover:bg-slate-900 transition"
-//           >
-//             Submit Review
-//           </button>
-//         </form>
-//       </section>
-//     </div>
-//   );
-// }
-
-// export default Product;
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer/Footer";
+import { useFetch } from "../hooks/useFetch";
+import Loader from "../components/Loader/Loader";
 
 function Product() {
   const { slugId } = useParams();
   const navigate = useNavigate();
-
+  const [reviewLoading, setReviewLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [productDetails, setProductDetails] = useState(null);
 
-  useEffect(() => {
-    if (!slugId) {
-      navigate("/");
-      return;
-    }
-
-    (async () => {
-      try {
-        const res = await axios.get(`/api/product/${slugId}`);
-        setProductDetails(res.data.data);
-      } catch (err) {
-        console.error(err.response.data.message);
-      }
-    })();
-  }, [slugId, navigate]);
+  const [productDetails, setProductDetails, productError, productLoading] =
+    useFetch(`/api/product/${slugId}`, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setReviewLoading(true);
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
     data.star = parseInt(data.star);
@@ -239,6 +28,8 @@ function Product() {
       toast.success("Review added successfully");
     } catch (err) {
       toast.error(err.response.data.message);
+    } finally {
+      setReviewLoading(false);
     }
   };
 
@@ -259,6 +50,7 @@ function Product() {
   };
 
   const handleDeleteReview = async (reviewId) => {
+    setReviewLoading(false);
     try {
       await axios.delete(`/api/user/product/review/${reviewId}`);
       setProductDetails((prev) => ({
@@ -268,11 +60,15 @@ function Product() {
       toast.success("Review deleted successfully");
     } catch (err) {
       toast.error(err.response.data.message);
+    } finally {
+      setReviewLoading(false);
     }
   };
 
-  if (!productDetails) {
-    return <div className="text-center py-10 text-slate-600">Loading...</div>;
+  if (productError) console.log("Error:product error:", productError);
+
+  if (productLoading || reviewLoading) {
+    return <Loader />;
   }
 
   return (
@@ -284,7 +80,7 @@ function Product() {
           <div className="lg:w-1/2 p-6">
             <img
               src={
-                productDetails.product_images.length > 0
+                productDetails.product_images?.length > 0
                   ? productDetails.product_images[0].image_url
                   : ""
               }
@@ -312,7 +108,7 @@ function Product() {
             <p className="text-slate-700 mb-4">
               Seller:{" "}
               <span className="font-medium text-slate-900">
-                {productDetails.seller.seller_name}
+                {productDetails.seller?.seller_name}
               </span>
             </p>
             <div className="flex gap-4 mb-4">
@@ -353,7 +149,7 @@ function Product() {
         </div>
         <section className="mt-10">
           <h2 className="text-2xl font-bold mb-6 text-slate-900">Reviews</h2>
-          {productDetails.review.length > 0 ? (
+          {productDetails.review?.length > 0 ? (
             productDetails.review.map((review) => (
               <div
                 key={review.review_id}
