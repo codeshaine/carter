@@ -1,0 +1,43 @@
+import axios from "axios";
+import { createContext, useCallback, useEffect, useState } from "react";
+
+export const AuthContext = createContext();
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [seller, setSeller] = useState(null);
+  const [isSeller, setIsSeller] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const checkAuthentication = useCallback(async () => {
+    try {
+      const user = await axios.get("/api/user/check-auth");
+      setUser(user.data.data);
+      setIsSeller(user.data.data.isSeller);
+      setSeller(user.data.data.sellers?.seller_name);
+      setIsAuthenticated(true);
+    } catch (err) {
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  }, []);
+  useEffect(() => {
+    checkAuthentication();
+  }, [checkAuthentication]);
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated,
+        seller,
+        isSeller,
+        setIsSeller,
+        setSeller,
+        setUser,
+        setIsAuthenticated,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}

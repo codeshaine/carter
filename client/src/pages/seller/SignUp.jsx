@@ -16,7 +16,9 @@ function SignUp() {
     const formObject = Object.fromEntries(formData.entries());
     try {
       await axios.post("api/seller/signup", formObject);
-      navigate("/");
+      setTimeout(() => {
+        navigate("/");
+      }, 400);
     } catch (err) {
       if (err.response && err.response.status === 401) {
         return toast.error("Please login as user before proceeding");

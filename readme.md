@@ -19,10 +19,9 @@ pagination
 
 TODO:8/9/2024 (fb)
 
--custom hooks and state managemet
 -loader
--context for protected routes
 -gloabal error
+-integrate payment gateway
 
 - send them back on the protected route .implemnt this logic in the every page
 - minor bug in the cart page while deleting state is not being updated

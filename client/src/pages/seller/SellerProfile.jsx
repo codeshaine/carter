@@ -10,6 +10,7 @@ import Loader from "../../components/Loader/Loader";
 function SellerProfile() {
   const [logo, setLogo] = useState(null);
   const navigate = useNavigate();
+
   const [sellerData, setSellerData, sellerError, sellerLoading] = useFetch(
     "/api/seller",
     [navigate]

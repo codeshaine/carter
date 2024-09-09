@@ -49,6 +49,13 @@ async function signIn(req, res) {
       where: {
         email,
       },
+      include: {
+        sellers: {
+          select: {
+            seller_name: true,
+          },
+        },
+      },
     });
   } catch (err) {
     throw new ApiError(500, "Error occured during user login query", err);

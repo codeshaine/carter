@@ -20,66 +20,77 @@ import ManageAddress from "./pages/user/ManageAddress";
 import Cart from "./pages/user/Cart";
 import ManageOrderedProducts from "./pages/seller/ManageOrderedProducts";
 import ProductList from "./pages/ProductList";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedUserRoute from "./routes/ProtectedUserRoute";
+import ProtectedSellerRoutes from "./routes/ProtectedSellerRoutes";
+import GlobalError from "./pages/GlobalError";
 function App() {
   axios.defaults.withCredentials = true;
   axios.defaults.baseURL = import.meta.env.VITE_BACKEND_API_URL;
   const router = createBrowserRouter(
     createRoutesFromElements([
-      <Route key="home" path="/">
-        <Route key="default" path="" element={<Home />} />
+      <Route key="global" path="/">
+        <Route key="home" path="" element={<Home />} />
         <Route key="login" path="/login" element={<Auth />} />
-        <Route
-          key="userProfile"
-          path="/user/profile"
-          element={<UserProfile />}
-        />
-        <Route key="userProfile" path="/seller/signup" element={<SignUp />} />
-        <Route
-          key="sellerProfile"
-          path="/seller/profile"
-          element={<SellerProfile />}
-        />
-        <Route
-          key="newProduct"
-          path="/seller/product/new"
-          element={<NewProductRegister />}
-        />
-        <Route
-          key="manageProudcts"
-          path="/seller/product/myproducts"
-          element={<ManageMyProducts />}
-        />
+        <Route key="sellerSignup" path="/seller/signup" element={<SignUp />} />
+        {/********************************** user routes **************************************/}
+        <Route path="user" element={<ProtectedUserRoute />}>
+          <Route key="userProfile" path="profile" element={<UserProfile />} />
+          <Route key="myOrders" path="my-orders" element={<MyOrders />} />
+          <Route
+            key="buynow"
+            path="buy-now/:slugId/:qty"
+            element={<BuyNow />}
+          />
+          <Route key="mycart" path="my-cart" element={<Cart />} />
+          <Route
+            key="manageAddresses"
+            path="manage-addresses"
+            element={<ManageAddress />}
+          />
+        </Route>
 
+        {/********************************** seller routes **************************************/}
+        <Route path="seller" element={<ProtectedSellerRoutes />}>
+          <Route
+            key="sellerProfile"
+            path="profile"
+            element={<SellerProfile />}
+          />
+          <Route
+            key="newProduct"
+            path="product/new"
+            element={<NewProductRegister />}
+          />
+          <Route
+            key="manageProudcts"
+            path="product/myproducts"
+            element={<ManageMyProducts />}
+          />
+          <Route
+            key="seller-dashbaord"
+            path="manage-orders"
+            element={<ManageOrderedProducts />}
+          />
+        </Route>
+
+        {/********************************** prpduct routes **************************************/}
         <Route
           key="product-list"
           path="/product-list/:nameParam"
           element={<ProductList />}
         />
         <Route key="products" path="/product/:slugId" element={<Product />} />
-
-        <Route key="myOrders" path="/user/my-orders" element={<MyOrders />} />
-
-        <Route
-          key="buynow"
-          path="/user/buy-now/:slugId/:qty"
-          element={<BuyNow />}
-        />
-        <Route
-          key="manageAddresses"
-          path="/user/manage-addresses"
-          element={<ManageAddress />}
-        />
-        <Route key="mycart" path="/user/my-cart" element={<Cart />} />
-        <Route
-          key="seller-dashbaord"
-          path="/seller/manage-orders"
-          element={<ManageOrderedProducts />}
-        />
+        <Route key="gloabal-error" path="*" element={<GlobalError />} />
       </Route>,
     ])
   );
 
-  return <RouterProvider router={router}></RouterProvider>;
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
 
 export default App;

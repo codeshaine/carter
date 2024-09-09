@@ -441,14 +441,12 @@ export async function handleOrderedSellerItems(req, res) {
     //   JSON.stringify(orderedItems)
     // );
 
-    res
-      .status(200)
-      .json(
-        new ApiResponse(200, "Got the ordered products", {
-          orderedItems,
-          totalNumberOfOrders,
-        })
-      );
+    res.status(200).json(
+      new ApiResponse(200, "Got the ordered products", {
+        orderedItems,
+        totalNumberOfOrders,
+      })
+    );
   } catch (err) {
     console.error(err);
     if (err instanceof ApiError) {
@@ -485,5 +483,28 @@ export async function handleDeliveryDone(req, res) {
       throw new ApiError(400, "Order not exist", err);
     }
     throw new ApiError(500, "Error occured during transaction", err);
+  }
+}
+
+export async function checkSeller(req, res) {
+  try {
+    const seller = await prismaClient.sellers.findFirst({
+      where: {
+        seller_id: req.seller.seller_id,
+      },
+      select: {
+        seller_name: true,
+      },
+    });
+    if (!seller) {
+      throw new ApiError(400, "Seller does not exist");
+    }
+    res.status(200).json(new ApiResponse(200, "Seller exist", seller));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof ApiError) {
+      throw new ApiError(err.statuscode, err.message, err);
+    }
+    throw new ApiError(500, "Error occrured while checking the seller", err);
   }
 }

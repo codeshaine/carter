@@ -704,3 +704,33 @@ export async function handleDeleteOrder(req, res) {
     throw new ApiError(500, "Error orccured while cancelling orders", err);
   }
 }
+
+export async function checkUser(req, res) {
+  try {
+    const user = await prismaClient.users.findFirst({
+      where: {
+        user_id: req.user.user_id,
+      },
+      select: {
+        name: true,
+
+        isSeller: true,
+        sellers: {
+          select: {
+            seller_name: true,
+          },
+        },
+      },
+    });
+    if (!user) {
+      throw new ApiError(400, "User not found", null);
+    }
+    res.status(200).json(new ApiResponse(200, "User found", user));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof ApiError) {
+      throw new ApiError(err.statuscode, err.message, err.stack);
+    }
+    throw new ApiError(500, "Error occured while cancelling orders", err);
+  }
+}

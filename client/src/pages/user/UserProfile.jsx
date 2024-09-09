@@ -1,9 +1,10 @@
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
+import { AuthContext } from "../../context/AuthContext";
 
 function UserProfile() {
   const [name, setName] = useState("");
@@ -11,7 +12,8 @@ function UserProfile() {
   const profilePicUrl = useRef(null);
   const [profile, setProfile] = useState(null);
   const navigate = useNavigate();
-
+  const { setUser, setSeller, setIsAuthenticated, setIsSeller } =
+    useContext(AuthContext);
   useEffect(() => {
     (async () => {
       try {
@@ -59,10 +61,14 @@ function UserProfile() {
   const handleUserLogout = async () => {
     try {
       const response = await axios.post("/api/user/logout");
+      setUser(null);
+      setIsAuthenticated(false);
+      setIsSeller(false);
+      setSeller(null);
       toast.success(response.data.message);
     } catch (err) {
       console.log(err);
-      toast.error(err.response.data.message);
+      toast.error(err.response?.data?.message);
     }
   };
 

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -12,6 +13,8 @@ export default function Auth() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
 
+  const { setUser, setIsAuthenticated, setSeller, setIsSeller } =
+    useContext(AuthContext);
   async function signup() {
     if (password !== confirmPassword) {
       toast.error("Password do not match");
@@ -24,6 +27,9 @@ export default function Auth() {
         email,
         password,
       });
+
+      setUser(res.data.data);
+      setIsAuthenticated(true);
       toast.success(res.data.message);
       setTimeout(() => {
         navigate("/");
@@ -41,6 +47,10 @@ export default function Auth() {
         password,
       });
 
+      setUser(res.data.data);
+      setSeller(res.data.data?.sellers?.seller_name);
+      setIsSeller(res.data.data.isSeller);
+      setIsAuthenticated(true);
       toast.success(res.data.message);
       setTimeout(() => {
         navigate("/");

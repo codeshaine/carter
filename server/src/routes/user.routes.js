@@ -8,6 +8,7 @@ import {
 import passport from "passport";
 import { isAuthenticated } from "../middlewares/auth.js";
 import {
+  checkUser,
   handldeAddUserAddress,
   handleAddToCart,
   handleBuyNow,
@@ -16,7 +17,6 @@ import {
   handleDeleteReview,
   handleDeleteUserAddress,
   handleGetCartItems,
-  handleGetOrderedDetails,
   handleGetOrders,
   handleGetUserAddress,
   handleGetUserInfo,
@@ -125,8 +125,5 @@ userRouter.get(
 
 // TODO use this route for to know if the login successful or not
 //TODO reomve this
-userRouter.get("/check", isAuthenticated, (req, res) => {
-  console.log("for testing :", req.session.user);
-  res.status(200).json(new ApiResponse(200, "ook", req.session.user));
-});
+userRouter.get("/check-auth", isAuthenticated, handler(checkUser));
 export { userRouter };
