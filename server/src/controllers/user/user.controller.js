@@ -571,8 +571,12 @@ export async function handleGetCartItems(req, res) {
       },
     });
 
-    redisClient.setex(CACHE_KEY, CACHE_EXIPIRATION, JSON.stringify(cartItems));
-    res.status(200).json(new ApiResponse(200, "cart items", cartItems));
+    redisClient.setex(
+      CACHE_KEY,
+      CACHE_EXIPIRATION,
+      JSON.stringify(cartItems.items)
+    );
+    res.status(200).json(new ApiResponse(200, "cart items", cartItems.items));
   } catch (err) {
     console.error(err);
     if (err instanceof ApiError)

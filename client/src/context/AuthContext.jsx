@@ -8,9 +8,11 @@ export function AuthProvider({ children }) {
   const [seller, setSeller] = useState(null);
   const [isSeller, setIsSeller] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const checkAuthentication = useCallback(async () => {
     try {
       const user = await axios.get("/api/user/check-auth");
+      console.log("chekcing if the user is authenticated form context");
       setUser(user.data.data);
       setIsSeller(user.data.data.isSeller);
       setSeller(user.data.data.sellers?.seller_name);
@@ -18,6 +20,8 @@ export function AuthProvider({ children }) {
     } catch (err) {
       setUser(null);
       setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
     }
   }, []);
   useEffect(() => {
@@ -31,6 +35,7 @@ export function AuthProvider({ children }) {
         isAuthenticated,
         seller,
         isSeller,
+        loading,
         setIsSeller,
         setSeller,
         setUser,

@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import { AuthContext } from "../../context/AuthContext";
+import SubLoader from "../../components/Loader/SubLoader";
 
 function UserProfile() {
   const [name, setName] = useState("");
@@ -12,6 +13,7 @@ function UserProfile() {
   const profilePicUrl = useRef(null);
   const [profile, setProfile] = useState(null);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const { setUser, setSeller, setIsAuthenticated, setIsSeller } =
     useContext(AuthContext);
   useEffect(() => {
@@ -49,12 +51,14 @@ function UserProfile() {
     const formData = new FormData();
     formData.append("name", name);
     formData.append("image", profile);
-
+    setLoading(true);
     try {
       await axios.post("/api/user/profile/update", formData);
       toast.success("Updated successfully");
     } catch (err) {
       toast.error(err.response ? err.response.data.message : "Network Error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,8 +78,14 @@ function UserProfile() {
 
   return (
     <>
+      {loading && (
+        <div className="fixed z-50">
+          <SubLoader />
+        </div>
+      )}
       <Navbar />
       <Toaster />
+
       <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-slate-300 my-2 to-white p-4">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="relative">

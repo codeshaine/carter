@@ -48,10 +48,11 @@
 ## TODO
 
 - Resolve state persistence issue on reload (context not updating).
-- Handle cloud-stored images during product updates.
-- Implement loader for image uploads.
 - Fix bug in cart item deletion functionality.
+- Handle cloud-stored images during product updates.
+- Implement loader for image uploads.✅
 - Improve Redis cache handling during modifications (update cache timeout).
+- Payment gateway integration
 
 <!-- - meesage to seller and user mail on purchase and cancel product delivery
 - email sendign when user pruchase somehign and showing the pruchased item in the seller dashboard
@@ -63,12 +64,9 @@
 -- REFACTOR THE QUERY COLMUN DATA
 -- meesage to seller mail on purchase and cancel product delivery
 -- Need to fix the redis time on differnt routes
--- use context on frontend for cleaner look in the home page
--- whenever perfrom delete need to optimise it from fb from removign from the array list for quiick changes
-Frontend
+
 
 have to use lazy loading later for performance optimiZation : code splitting
-pagination
 
 ---
 

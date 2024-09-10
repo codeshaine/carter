@@ -21,7 +21,7 @@ function Cart() {
     [navigate]
   );
 
-  console.log(cartItems.items);
+  console.log(cartItems);
   const orderNow = async () => {
     try {
       const res = await axios.post("/api/user/product/cart/order-now", {
@@ -37,25 +37,19 @@ function Cart() {
     try {
       const res = await axios.delete(`/api/user/product/my-cart/${itemId}`);
       //BUG:not working
-      setCartItems((prev) => {
-        const updatedItems = prev.items.filter((item) => item.id !== itemId);
-        return {
-          ...prev,
-          items: updatedItems,
-        };
-      });
+      setCartItems((prev) => prev.filter((item) => item.id === itemId));
       console.log("after state:", cartItems);
       toast.success(res.data.message);
     } catch (err) {
       toast.error(err.response.data.message);
     }
   }
-
   const handleAddressChange = (addressId) => {
     setChoosenAddress(addressId);
   };
 
-  const totalAmount = cartItems.items?.reduce(
+  const safeCartItems = Array.isArray(cartItems) ? cartItems : [];
+  const totalAmount = safeCartItems.reduce(
     (total, item) => total + item.product.price * item.quantity,
     0
   );
@@ -77,10 +71,10 @@ function Cart() {
         <Toaster />
         <div className="max-w-6xl mx-auto">
           {/* Cart Items */}
-          {cartItems.items?.length > 0 ? (
+          {cartItems.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {cartItems.items?.map((item, index) => (
+                {cartItems.map((item, index) => (
                   <div
                     key={index}
                     className="bg-white shadow-md rounded-lg overflow-hidden relative border border-gray-300"

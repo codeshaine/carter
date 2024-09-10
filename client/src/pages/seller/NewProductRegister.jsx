@@ -1,34 +1,35 @@
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import Input from "../../components/Input/Input";
-import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
+import { useState } from "react";
+import SubLoader from "../../components/Loader/SubLoader";
 
 function NewProductRegister() {
-  const navigate = useNavigate();
-
+  const [loading, setLoading] = useState(false);
   async function handleProductSubmit(e) {
     e.preventDefault();
+    setLoading(true);
     const formData = new FormData(e.target);
     try {
       const res = await axios.post("/api/seller/product/new", formData);
       console.log(res);
       toast.success("Product added successfully");
-    } catch (err) {
-      if (err.response.status === 401) navigate("/login");
-      console.log(err);
-      if (err.response) {
-        toast.error(err.response.data.message);
-      } else {
-        toast.error("Network Error");
-      }
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
     <>
+      {loading && (
+        <div className="fixed z-50">
+          <SubLoader />
+        </div>
+      )}
       <Navbar />
+
       <div className="py-4 min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="w-full max-w-3xl bg-white shadow-md rounded-lg p-8">
           <Toaster />
