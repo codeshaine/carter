@@ -7,12 +7,14 @@ import Footer from "../../components/Footer/Footer";
 import PaginationControls from "../../components/PaginationController/PaginationController";
 import Loader from "../../components/Loader/Loader";
 import { useFetch } from "../../hooks/useFetch";
+import SubLoader from "../../components/Loader/SubLoader";
 
 function ManageMyProducts() {
   const navigate = useNavigate();
   const limit = 8;
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPageNumber, setTotalPageNumber] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const [data, setData, productError, productLoading] = useFetch(
     `/api/seller/products?limit=${limit}&page=${currentPage}`,
@@ -27,6 +29,7 @@ function ManageMyProducts() {
   async function handleDeleteProduct(slugId) {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
+        setLoading(true);
         const res = await axios.delete(`/api/seller/product/delete/${slugId}`);
         toast.success(res.data.message);
         setData((prevData) => ({
@@ -38,6 +41,8 @@ function ManageMyProducts() {
       } catch (err) {
         console.log(err);
         toast.error("Failed to delete product");
+      } finally {
+        setLoading(false);
       }
     }
   }
@@ -46,11 +51,16 @@ function ManageMyProducts() {
     navigate(`/product/${slugId}`);
   }
 
-  console.log("Error:\n Product Eror:\n", productError);
+  if (productError) console.log("Error:\n Product Eror:\n", productError);
   if (productLoading) return <Loader />;
 
   return (
     <>
+      {loading && (
+        <div className="fixed z-50">
+          <SubLoader />
+        </div>
+      )}
       <Navbar />
       <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
         <Toaster />
@@ -87,6 +97,7 @@ function ManageMyProducts() {
                 </div>
                 <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
                   <button
+                    disabled={loading}
                     className="bg-slate-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-slate-700 focus:outline-none focus:ring focus:ring-slate-300"
                     onClick={() => handleDeleteProduct(product.slug)}
                   >

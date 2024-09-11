@@ -1,20 +1,24 @@
 import axios from "axios";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import { useFetch } from "../../hooks/useFetch";
 import Loader from "../../components/Loader/Loader";
+import SubLoader from "../../components/Loader/SubLoader";
 
 function SellerProfile() {
   const [logo, setLogo] = useState(null);
   const navigate = useNavigate();
+  const profilePicUrl = useRef(null);
+  const [loading, setLoading] = useState(false);
 
   const [sellerData, setSellerData, sellerError, sellerLoading] = useFetch(
     "/api/seller",
     [navigate]
   );
+  // profilePicUrl.current = sellerData.seller_logo_url;
   const handleUpdateSeller = async () => {
     const formData = new FormData();
     for (const key in sellerData) {
@@ -23,6 +27,7 @@ function SellerProfile() {
     if (logo) formData.append("image", logo);
 
     try {
+      setLoading(true);
       await axios.post("/api/seller/profile/update", formData);
       toast.success("Updated successfully");
     } catch (err) {
@@ -31,13 +36,34 @@ function SellerProfile() {
       } else {
         toast.error("Network Error");
       }
+    } finally {
+      setLoading(false);
     }
   };
-  console.log("Error:\n seller error:", sellerError);
+  async function handleFileChange(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        profilePicUrl.current = reader.result;
+        setLogo(file);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+  if (!profilePicUrl.current) {
+    profilePicUrl.current = sellerData.seller_logo_url;
+  }
+  if (sellerError) console.log("Error:\n seller error:", sellerError);
   if (sellerLoading) return <Loader />;
 
   return (
     <>
+      {loading && (
+        <div className="fixed z-50">
+          <SubLoader />
+        </div>
+      )}
       <Navbar />
       <Toaster />
       <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-gray-100 to-white p-6">
@@ -45,7 +71,7 @@ function SellerProfile() {
           <div className="flex flex-col items-center mb-8">
             <div className="relative mb-6">
               <img
-                src={sellerData.seller_logo_url || "default-logo-url"}
+                src={profilePicUrl.current || "default"}
                 alt="Seller Logo"
                 className="w-32 h-32 rounded-full object-cover border-4 border-slate-300 shadow-md"
               />
@@ -67,7 +93,7 @@ function SellerProfile() {
                 <input
                   id="logo"
                   type="file"
-                  onChange={(e) => setLogo(e.target.files[0])}
+                  onChange={handleFileChange}
                   className="absolute inset-0 opacity-0 cursor-pointer"
                 />
               </label>
@@ -201,6 +227,7 @@ function SellerProfile() {
             </div>
             <div className="mt-6">
               <button
+                disabled={loading}
                 onClick={handleUpdateSeller}
                 className="w-full px-4 py-2 text-lg font-semibold bg-slate-600 text-white rounded-md hover:bg-slate-700 transition"
               >

@@ -47,8 +47,8 @@
 
 ## TODO
 
-- Resolve state persistence issue on reload (context not updating).
-- Fix bug in cart item deletion functionality.
+- Resolve state persistence issue on reload (context not updating).✅
+- Fix bug in cart item deletion functionality.✅
 - Handle cloud-stored images during product updates.
 - Implement loader for image uploads.✅
 - Improve Redis cache handling during modifications (update cache timeout).

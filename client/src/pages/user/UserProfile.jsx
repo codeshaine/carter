@@ -91,7 +91,7 @@ function UserProfile() {
           <div className="relative">
             <div className="w-full h-48 p-4 bg-gray-100 rounded-t-lg relative">
               <img
-                src={profilePicUrl.current || "default-profile-pic-url"}
+                src={profilePicUrl.current || "default"}
                 alt="User Profile"
                 className="w-full h-full object-contain rounded-t-lg"
               />
@@ -147,6 +147,7 @@ function UserProfile() {
             </div>
             <div className="flex gap-4">
               <button
+                disabled={loading}
                 onClick={handleUserUpdate}
                 className="w-full bg-slate-800 text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:bg-slate-700 transition-colors"
               >

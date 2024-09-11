@@ -28,7 +28,7 @@ function MyOrders() {
     }
   };
 
-  console.log("Error:\nOrdered Error:", orderError);
+  if (orderError) console.log("Error:\nOrdered Error:", orderError);
 
   if (orderLoading) {
     return <Loader />;

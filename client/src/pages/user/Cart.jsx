@@ -37,8 +37,9 @@ function Cart() {
     try {
       const res = await axios.delete(`/api/user/product/my-cart/${itemId}`);
       //BUG:not working
-      setCartItems((prev) => prev.filter((item) => item.id === itemId));
-      console.log("after state:", cartItems);
+      setCartItems((prev) =>
+        prev.filter((item) => item.cart_item_id !== itemId)
+      );
       toast.success(res.data.message);
     } catch (err) {
       toast.error(err.response.data.message);
@@ -55,12 +56,13 @@ function Cart() {
   );
 
   //loggin fetching error just in case
-  console.log(
-    "Error:\n useradress error:",
-    userAddressError,
-    "\n cart error:",
-    cartError
-  );
+  if (userAddressError || cartError)
+    console.log(
+      "Error:\n useradress error:",
+      userAddressError,
+      "\n cart error:",
+      cartError
+    );
   if (cartLoading || userAddressLoading) {
     return <Loader />;
   }

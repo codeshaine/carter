@@ -10,6 +10,7 @@ import {
 } from "../../services/index.js";
 import cloudinary from "../../services/cloudinary/config.js";
 import fs from "fs/promises";
+import { urlExtractor } from "../../services/cloudinary/urlExtractor.js";
 
 export async function handleGetSellerDetails(req, res) {
   const CACHE_KEY = "seller_details" + req.seller.seller_id;
@@ -63,17 +64,22 @@ export async function handleUpdateSellerProfile(req, res) {
   }
   //removig the file from the seller body
   delete sellerBody["image"];
-
-  //TODO Optimize
+  let previous = null;
+  try {
+    //Getting user info and previous profile url`
+    previous = await prismaClient.sellers.findFirst({
+      where: {
+        seller_id: req.seller.seller_id,
+      },
+      select: {
+        seller_logo_url: true,
+      },
+    });
+  } catch (err) {
+    throw new ApiError(500, "user fetch query error", err);
+  }
   if (req.file) {
     try {
-      //TODO have to debug the issue
-      // if (sellerBody.seller_logo_url) {
-      //   const res = await cloudinary.uploader.destroy(
-      //     sellerBody.seller_logo_url
-      //   );
-      //   console.log(res);
-      // }
       const result = await cloudinary.uploader.upload(req.file.path, {
         folder: "seller_profiles", //  organize uploads into folders
       });
@@ -92,23 +98,6 @@ export async function handleUpdateSellerProfile(req, res) {
     }
   }
 
-  // const fieldMapping = {
-  //   name: "seller_name",
-  //   logoUrl: "seller_logo_url",
-  //   sellerAddress: "seller_address",
-  //   sellerUrl: "seller_url",
-  //   contactNumber: "seller_contact_number",
-  //   sellerEmail: "seller_email",
-  //   bio: "seller_bio",
-  //   description: "seller_description",
-  // };
-  // const updateFileds = Object.keys(sellerBody).reduce((acc, key) => {
-  //   if (fieldMapping[key]) {
-  //     acc[fieldMapping[key]] = sellerBody[key];
-  //   }
-  //   return acc;
-  // }, {});
-
   try {
     const updatedSeller = await prismaClient.sellers.update({
       where: {
@@ -116,6 +105,11 @@ export async function handleUpdateSellerProfile(req, res) {
       },
       data: sellerBody,
     });
+    if (updatedSeller && previous.seller_logo_url) {
+      const publicId = urlExtractor(previous.seller_logo_url);
+      const result = await cloudinary.uploader.destroy(publicId);
+      console.log(result);
+    }
     res
       .status(200)
       .json(
@@ -272,16 +266,37 @@ export async function handleDeleteProduct(req, res) {
       },
       select: {
         product_id: true,
+        product_images: true,
       },
     });
     if (!product) {
       throw new ApiError(400, "Product not found");
     }
+    product.product_images.forEach(async (image) => {
+      try {
+        let extractedImage = urlExtractor(image.image_url);
+        let result = await cloudinary.uploader.destroy(extractedImage);
+        console.log(result);
+      } catch (err) {
+        console.log(err);
+      }
+    });
     await prismaClient.productImages.deleteMany({
       where: {
         product_id: product.product_id,
       },
     });
+    await prismaClient.cartItems.deleteMany({
+      where: {
+        product_id: product.product_id,
+      },
+    });
+    await prismaClient.orders.deleteMany({
+      where: {
+        product_id: product.product_id,
+      },
+    });
+
     await prismaClient.reviews.deleteMany({
       where: {
         product_id: product.product_id,

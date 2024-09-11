@@ -116,6 +116,7 @@ function NewProductRegister() {
             </div>
 
             <button
+              disabled={loading}
               type="submit"
               className="w-full py-3 mt-6 bg-slate-700 text-white font-semibold rounded-md hover:bg-slate-800 focus:outline-none focus:ring focus:ring-slate-400"
             >

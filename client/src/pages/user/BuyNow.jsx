@@ -39,12 +39,13 @@ function BuyNow() {
   };
 
   //loggin fetching error just in case
-  console.log(
-    "Error:\nproduct error:",
-    productError,
-    "\n address error:",
-    addressError
-  );
+  if (productError || addressError)
+    console.log(
+      "Error:\nproduct error:",
+      productError,
+      "\n address error:",
+      addressError
+    );
 
   if (productLoading || addressLoading)
     return <div className="text-center py-6 text-slate-600">Loading...</div>;

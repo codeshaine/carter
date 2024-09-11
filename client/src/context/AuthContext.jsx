@@ -12,7 +12,6 @@ export function AuthProvider({ children }) {
   const checkAuthentication = useCallback(async () => {
     try {
       const user = await axios.get("/api/user/check-auth");
-      console.log("chekcing if the user is authenticated form context");
       setUser(user.data.data);
       setIsSeller(user.data.data.isSeller);
       setSeller(user.data.data.sellers?.seller_name);

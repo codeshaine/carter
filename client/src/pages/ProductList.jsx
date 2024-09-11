@@ -184,14 +184,14 @@ function ProductList() {
             </p>
           </div>
         )}
-        {products.length > 0 && (
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={totalPageNumber}
-            onPageChange={handlePageChange}
-            className="mt-8"
-          />
-        )}
+        {/* {products.length > 0 && ( */}
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPageNumber}
+          onPageChange={handlePageChange}
+          className="mt-8"
+        />
+        {/* )} */}
       </div>
       <Footer />
     </>

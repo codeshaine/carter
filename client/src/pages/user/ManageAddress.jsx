@@ -41,7 +41,7 @@ function UserAddressForm() {
     }
   };
 
-  console.log("Error:\n address error:", addressError);
+  if (addressError) console.log("Error:\n address error:", addressError);
 
   if (addressLoading) return <Loader />;
   return (

@@ -12,6 +12,8 @@ import redisClient from "../../clients/redisCleint.js";
 import { validateUserAddress } from "../../services/zod/userAddress.js";
 import cloudinary from "../../services/cloudinary/config.js";
 import { deleteRedisKey } from "../../services/redis/redisdeleteKey.js";
+import { error } from "console";
+import { urlExtractor } from "../../services/cloudinary/urlExtractor.js";
 
 // ******************managin user profile********************************
 export async function handleGetUserInfo(req, res) {
@@ -58,6 +60,21 @@ export async function handleUpdateUser(req, res) {
   if (!validate.success) {
     throw new ApiError(400, "Invalid type of input", validate.error);
   }
+  //fetching previous user profile
+  let previous = null;
+  try {
+    //Getting user info and previous profile url`
+    previous = await prismaClient.users.findFirst({
+      where: {
+        user_id: req.user.user_id,
+      },
+      select: {
+        profile_url: true,
+      },
+    });
+  } catch (err) {
+    throw new ApiError(500, "user fetch query error", err);
+  }
   //TODO optimize needed
   if (req.file) {
     try {
@@ -90,6 +107,7 @@ export async function handleUpdateUser(req, res) {
     }
     return acc;
   }, {});
+
   try {
     const updatedUser = await prismaClient.users.update({
       where: {
@@ -98,6 +116,12 @@ export async function handleUpdateUser(req, res) {
       data: updatedFields,
     });
 
+    //deleting previous user profile
+    if (updatedUser && previous.profile_url) {
+      const publicId = urlExtractor(previous.profile_url);
+      const result = await cloudinary.uploader.destroy(publicId);
+      console.log(result);
+    }
     res
       .status(200)
       .json(new ApiResponse(200, "User updated successfully", updatedUser));

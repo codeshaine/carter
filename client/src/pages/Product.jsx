@@ -65,7 +65,8 @@ function Product() {
     }
   };
 
-  if (productError) console.log("Error:product error:", productError);
+  if (productError)
+    if (productError) console.log("Error:product error:", productError);
 
   if (productLoading || reviewLoading) {
     return <Loader />;
