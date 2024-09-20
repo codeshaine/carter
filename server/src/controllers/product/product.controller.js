@@ -1,7 +1,6 @@
 import prismaClient from "../../clients/prismaClient.js";
 import redisClient from "../../clients/redisCleint.js";
 import { ApiError, ApiResponse } from "../../services/index.js";
-import { number } from "zod";
 
 //gets top 10 new products
 export async function handleGetNewProducts(req, res) {
@@ -44,15 +43,35 @@ export async function handleGetProductsWithFilter(req, res) {
   let productname = req.params.name;
   const lower_bound = parseFloat(req.query.lb) || 0;
   const upper_bound = parseFloat(req.query.ub) || Number.MAX_SAFE_INTEGER;
-  //! implemnt the limit  for pagination
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 8;
   const category = req.query.cat;
 
+  const CACHE_KEY =
+    "product_" +
+    productname +
+    "_" +
+    lower_bound +
+    "_" +
+    upper_bound +
+    "_" +
+    page +
+    "_" +
+    limit +
+    "_" +
+    category;
+  const CACHE_EXPIRATION = 60;
+
+  let totalNumberOfProduct = 0;
+  const cachedData = await redisClient.get(CACHE_KEY);
+  if (cachedData) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Got Products", JSON.parse(cachedData)));
+  }
   if (productname == "all") {
     productname = "";
   }
-  let totalNumberOfProduct = 0;
   try {
     const whereCondition = {
       AND: [
@@ -86,16 +105,12 @@ export async function handleGetProductsWithFilter(req, res) {
         category: category,
       });
     }
-    // const cahcedProductNumber = await redisClient.get(TOATL_NUMBER_OF_PRODUCT);
-    // if (cahcedProductNumber) {
-    // totalNumberOfProduct = cahcedProductNumber;
-    // } else {
+
     const temp = await prismaClient.products.count({
       where: whereCondition,
     });
     totalNumberOfProduct = temp;
-    // redisClient.setex(TOATL_NUMBER_OF_PRODUCT, 300, totalNumberOfProduct);
-    // }
+
     const prodctsList = await prismaClient.products.findMany({
       where: whereCondition,
       take: limit,
@@ -118,6 +133,14 @@ export async function handleGetProductsWithFilter(req, res) {
     if (prodctsList.length === 0) {
       throw new ApiError(400, "There are no products");
     }
+    redisClient.setex(
+      CACHE_KEY,
+      CACHE_EXPIRATION,
+      JSON.stringify({
+        pl: prodctsList,
+        tp: totalNumberOfProduct,
+      })
+    );
     res.status(200).json(
       new ApiResponse(200, "Got Products", {
         pl: prodctsList,
@@ -136,7 +159,7 @@ export async function handleGetProductsWithFilter(req, res) {
 export async function handleGetOneProduct(req, res) {
   const slugId = req.params.slugId;
   const CACHE_KEY = slugId;
-  const CACHE_EXPIRATION = 20;
+  const CACHE_EXPIRATION = 60;
   if (!slugId) {
     throw new ApiError(400, "provide valid id");
   }
@@ -209,8 +232,8 @@ export async function handleGetOneProduct(req, res) {
 
 export async function handleGetProductReviews(req, res) {
   const slug = req.params.id;
-  const CACHE_KEY = slug;
-  const CACHE_EXIPIRATION = 60;
+  const CACHE_KEY = slug + "_reviews";
+  const CACHE_EXIPIRATION = 30;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
     return res
@@ -252,7 +275,7 @@ export async function handleGetProductReviews(req, res) {
 
 export async function handleGetSellerDetails(req, res) {
   const slug = req.params.slugId;
-  const CACHE_KEY = "seller_detials" + slug;
+  const CACHE_KEY = "seller_details_" + slug;
   const CACHE_EXIPIRATION = 60;
   if (!slug) {
     throw new ApiError(400, "Prvodide the product id");

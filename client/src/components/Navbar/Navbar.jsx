@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useContext, useState } from "react";
+import { memo, useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 
-function Navbar() {
+const Navbar = memo(function Navbar() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState({
     user: false,
@@ -139,6 +139,6 @@ function Navbar() {
       </ul>
     </nav>
   );
-}
+});
 
 export default Navbar;

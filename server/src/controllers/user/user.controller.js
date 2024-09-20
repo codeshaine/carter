@@ -19,7 +19,7 @@ import { urlExtractor } from "../../services/cloudinary/urlExtractor.js";
 export async function handleGetUserInfo(req, res) {
   const CACHE_KEY = "user_details" + req.user.user_id;
   //TODO adjust
-  const CACHE_EXPIRATION = 5;
+  const CACHE_EXPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
     return res
@@ -60,6 +60,8 @@ export async function handleUpdateUser(req, res) {
   if (!validate.success) {
     throw new ApiError(400, "Invalid type of input", validate.error);
   }
+  const CACHE_KEY = "user_details" + req.user.user_id;
+
   //fetching previous user profile
   let previous = null;
   try {
@@ -122,6 +124,8 @@ export async function handleUpdateUser(req, res) {
       const result = await cloudinary.uploader.destroy(publicId);
       console.log(result);
     }
+
+    await redisClient.del(CACHE_KEY);
     res
       .status(200)
       .json(new ApiResponse(200, "User updated successfully", updatedUser));
@@ -139,6 +143,8 @@ export async function handleUpdateUser(req, res) {
 //*********************** handling user review ***********************
 export async function handlePushReview(req, res) {
   const slugId = req.params.id;
+  const CACHE_KEY = slugId + "_reviews";
+
   if (!slugId) {
     throw new ApiError(400, "product id is missing");
   }
@@ -189,6 +195,8 @@ export async function handlePushReview(req, res) {
         user_id: req.user.user_id,
       },
     });
+
+    await redisClient.del(CACHE_KEY);
     res.status(201).json(new ApiResponse(201, "review created", newReview));
   } catch (err) {
     console.error(err);
@@ -203,6 +211,8 @@ export async function handlePushReview(req, res) {
 }
 export async function handleDeleteReview(req, res) {
   const slug = req.params.id;
+  const CACHE_KEY = slug + "_reviews";
+
   if (!slug) {
     throw new ApiError(400, "provide valid slug id");
   }
@@ -223,6 +233,8 @@ export async function handleDeleteReview(req, res) {
         },
       },
     });
+
+    await redisClient.del(CACHE_KEY);
     res.status(200).json(new ApiResponse(200, "Deleted successfully", review));
   } catch (err) {
     console.error(err);
@@ -238,10 +250,9 @@ export async function handleDeleteReview(req, res) {
 
 //***********************hanlding user address************************
 export async function handldeAddUserAddress(req, res) {
-  console.log(req.body);
   const userAddress = req.body;
   const validate = validateUserAddress(userAddress);
-  // console.log(validate.error);
+  const CACHE_KEY = "user_address_" + req.user.user_id;
   if (!validate.success) {
     throw new ApiError(400, "Invalid Input", validate.error);
   }
@@ -258,8 +269,7 @@ export async function handldeAddUserAddress(req, res) {
         user_id: req.user.user_id,
       },
     });
-
-    deleteRedisKey("user_address_" + req.user.user_id);
+    await redisClient.del(CACHE_KEY);
     res.status(201).json(new ApiResponse(201, "address created", newAddress));
   } catch (err) {
     console.error(err);
@@ -270,6 +280,7 @@ export async function handldeAddUserAddress(req, res) {
 export async function handleDeleteUserAddress(req, res) {
   const addressId = parseInt(req.params.addressId);
 
+  const CACHE_KEY = "user_address_" + req.user.user_id;
   if (!addressId) {
     throw new ApiError(400, "Provide valid address id");
   }
@@ -279,7 +290,7 @@ export async function handleDeleteUserAddress(req, res) {
         user_address_id: addressId,
       },
     });
-    deleteRedisKey("user_address_" + req.user.user_id);
+    await redisClient.del(CACHE_KEY);
     res
       .status(200)
       .json(new ApiResponse(200, "Deleted address", deletedAddress));
@@ -325,6 +336,7 @@ export async function handleGetUserAddress(req, res) {
 //*********************handling buy and order now feature **************
 export async function handleBuyNow(req, res) {
   const buyNowBody = req.body;
+  const CACHE_KEY = "ordered_items_" + req.user.user_id;
   const validate = validateBuyNowBody(buyNowBody);
   if (!validate.success) {
     throw new ApiError(400, "Invalid input", validate.error);
@@ -338,6 +350,7 @@ export async function handleBuyNow(req, res) {
         product_id: true,
         price: true,
         stock: true,
+        seller_id: true,
         seller: {
           select: {
             seller_email: true,
@@ -377,7 +390,10 @@ export async function handleBuyNow(req, res) {
         stock: product.stock - buyNowBody.quantity,
       },
     });
-
+    //seller ordered list is deleted from cache
+    const CACHE_KEY_2 = "seller_ordered_list_" + product.seller_id;
+    await redisClient.del(CACHE_KEY_2);
+    await redisClient.del(CACHE_KEY);
     res.status(201).json(new ApiResponse(201, "Order created", order));
   } catch (err) {
     console.error(err);
@@ -396,6 +412,8 @@ export async function handleAddToCart(req, res) {
   if (!validate.success) {
     throw new ApiError(400, "Invalid input", validate.error);
   }
+
+  const CACHE_KEY = "cart_items_" + req.user.user_id;
 
   try {
     const cart = await prismaClient.carts.upsert({
@@ -447,6 +465,8 @@ export async function handleAddToCart(req, res) {
         quantity: productBody.quantity,
       },
     });
+
+    await redisClient.del(CACHE_KEY);
     res
       .status(201)
       .json(new ApiResponse(201, "New item added to cart", newCartItem));
@@ -461,7 +481,7 @@ export async function handleAddToCart(req, res) {
 
 export async function handleDeleteFromCart(req, res) {
   const cartItemId = parseInt(req.params.itemId);
-  console.log(cartItemId);
+
   const CACHE_KEY = "cart_items_" + req.user.user_id;
   try {
     await prismaClient.cartItems.delete({
@@ -485,6 +505,7 @@ export async function handleDeleteFromCart(req, res) {
 }
 
 export async function handleOrderNow(req, res) {
+  const CACHE_KEY = "ordered_items_" + req.user.user_id;
   const userAddress = req.body.userAddress;
   if (!userAddress) {
     throw new ApiError(400, "Provide valid user address");
@@ -506,8 +527,12 @@ export async function handleOrderNow(req, res) {
     }
     let total = 0;
     const orders = await Promise.all(
-      productList.map(async (item) => {
+      productList.forEach(async (item) => {
         total += item.quantity * item.product.price;
+        //deleting cached ordered items
+        const CACHE_KEY_2 = "seller_ordered_list_" + item.product.seller_id;
+        await redisClient.del(CACHE_KEY_2);
+
         return prismaClient.orders.create({
           data: {
             product_id: item.product_id,
@@ -547,6 +572,9 @@ export async function handleOrderNow(req, res) {
       totalMoney: total,
     };
 
+    //deleting redis cache
+    await redisClient.del(CACHE_KEY);
+
     res
       .status(200)
       .json(new ApiResponse(200, "Items purchased,cart go emptied", resData));
@@ -563,7 +591,7 @@ export async function handleOrderNow(req, res) {
 export async function handleGetCartItems(req, res) {
   const userId = req.user.user_id;
   const CACHE_KEY = "cart_items_" + req.user.user_id;
-  const CACHE_EXIPIRATION = 10;
+  const CACHE_EXIPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
     return res
@@ -612,7 +640,7 @@ export async function handleGetCartItems(req, res) {
 //********************managing ordered items ***********************
 export async function handleGetOrders(req, res) {
   const CACHE_KEY = "ordered_items_" + req.user.user_id;
-  const CACHE_EXIPIRATION = 10;
+  const CACHE_EXIPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
     return res
@@ -687,9 +715,11 @@ export async function handleGetOrderedDetails(req, res) {
 
 export async function handleDeleteOrder(req, res) {
   const orderId = parseInt(req.params.orderId);
+  const CACHE_KEY = "ordered_items_" + req.user.user_id;
   if (!orderId) {
     throw new ApiError(400, "Provide order id");
   }
+
   try {
     const order = await prismaClient.orders.findFirst({
       where: {
@@ -698,6 +728,11 @@ export async function handleDeleteOrder(req, res) {
       select: {
         quantity: true,
         product_id: true,
+        product: {
+          select: {
+            seller_id: true,
+          },
+        },
       },
     });
     if (!order) {
@@ -718,6 +753,10 @@ export async function handleDeleteOrder(req, res) {
         order_id: orderId,
       },
     });
+    //deleting redis cache for ordered items of seller
+    const CACHE_KEY_2 = "seller_ordered_list_" + order.product.seller_id;
+    await redisClient.del(CACHE_KEY_2);
+
     res
       .status(200)
       .json(new ApiResponse(200, "Deleted Successfully", deltedOrder));
@@ -734,6 +773,14 @@ export async function handleDeleteOrder(req, res) {
 }
 
 export async function checkUser(req, res) {
+  const CACHE_KEY = "check_user_auth_" + req.user.user_id;
+  const CACHE_EXIPIRATION = 30;
+  const cachedData = await redisClient.get(CACHE_KEY);
+  if (cachedData) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "User found", JSON.parse(cachedData)));
+  }
   try {
     const user = await prismaClient.users.findFirst({
       where: {
@@ -753,6 +800,7 @@ export async function checkUser(req, res) {
     if (!user) {
       throw new ApiError(400, "User not found", null);
     }
+    redisClient.setex(CACHE_KEY, CACHE_EXIPIRATION, JSON.stringify(user));
     res.status(200).json(new ApiResponse(200, "User found", user));
   } catch (err) {
     console.error(err);

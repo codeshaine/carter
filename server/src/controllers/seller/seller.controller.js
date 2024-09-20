@@ -14,7 +14,7 @@ import { urlExtractor } from "../../services/cloudinary/urlExtractor.js";
 
 export async function handleGetSellerDetails(req, res) {
   const CACHE_KEY = "seller_details" + req.seller.seller_id;
-  const CACHE_EXPIRATION = 5;
+  const CACHE_EXPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
     return res
@@ -59,6 +59,7 @@ export async function handleGetSellerDetails(req, res) {
 export async function handleUpdateSellerProfile(req, res) {
   const sellerBody = req.body;
   const validate = validateUpdateSellerBody(sellerBody);
+  const CACHE_KEY = "seller_details" + req.seller.seller_id;
   if (!validate.success) {
     throw new ApiError(400, "Invalid type of input", validate.error);
   }
@@ -110,6 +111,7 @@ export async function handleUpdateSellerProfile(req, res) {
       const result = await cloudinary.uploader.destroy(publicId);
       console.log(result);
     }
+    await redisClient.del(CACHE_KEY);
     res
       .status(200)
       .json(
@@ -136,6 +138,7 @@ export async function handleUploadNewProduct(req, res) {
   if (!validate.success) {
     throw new ApiError(400, "Invalid product details", validate.error);
   }
+  const CACHE_KEY = "all_seller_products_" + req.seller.seller_id;
 
   const slugName = makeSlug(productData.name);
   try {
@@ -169,7 +172,7 @@ export async function handleUploadNewProduct(req, res) {
 
       newProduct["images"] = newLink;
     }
-
+    await redisClient.del(CACHE_KEY);
     return res
       .status(201)
       .json(new ApiResponse(201, "Product createrd", newProduct));
@@ -332,19 +335,19 @@ export async function handleGetAllSellerProducts(req, res) {
   }
   //TODO reduce the cache time
   const CACHE_KEY = "all_seller_products_" + sellerId;
-  const CACHE_EXPIRATION = 5;
-  // const cachedProductData = await redisClient.get(CACHE_KEY);
-  // if (cachedProductData) {
-  //   return res
-  //     .status(200)
-  //     .json(
-  //       new ApiResponse(
-  //         200,
-  //         "all the product details",
-  //         JSON.parse(cachedProductData)
-  //       )
-  //     );
-  // }
+  const CACHE_EXPIRATION = 30;
+  const cachedProductData = await redisClient.get(CACHE_KEY);
+  if (cachedProductData) {
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          "all the product details",
+          JSON.parse(cachedProductData)
+        )
+      );
+  }
   let totalNumberOfProduct = 0;
   try {
     const temp = await prismaClient.products.count({
@@ -377,7 +380,7 @@ export async function handleGetAllSellerProducts(req, res) {
       throw new ApiError(400, "No product found for the seller");
     }
 
-    // redisClient.setex(CACHE_KEY, CACHE_EXPIRATION, JSON.stringify(productData));
+    redisClient.setex(CACHE_KEY, CACHE_EXPIRATION, JSON.stringify(productData));
     return res.status(200).json(
       new ApiResponse(200, "Product details of seller", {
         productData,
@@ -402,16 +405,15 @@ export async function handleOrderedSellerItems(req, res) {
   const CACHE_EXPIRATION = 5;
   const limit = parseInt(req.query.limit, 10) || 6;
   const page = parseInt(req.query.page, 10) || 1;
-  // const cachedData = await redisClient.get(CACHE_KEY);
-  // if (cachedData) {
-  //   return res
-  //     .status(200)
-  //     .json(
-  //       new ApiResponse(200, "Got the ordered products", JSON.parse(cachedData))
-  //     );
-  // }
+  const cachedData = await redisClient.get(CACHE_KEY);
+  if (cachedData) {
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, "Got the ordered products", JSON.parse(cachedData))
+      );
+  }
 
-  // console.log(req.seller.seller_id);
   try {
     const temp = await prismaClient.orders.count({
       where: {
@@ -450,11 +452,11 @@ export async function handleOrderedSellerItems(req, res) {
       },
     });
 
-    // redisClient.setex(
-    //   CACHE_KEY,
-    //   CACHE_EXPIRATION,
-    //   JSON.stringify(orderedItems)
-    // );
+    redisClient.setex(
+      CACHE_KEY,
+      CACHE_EXPIRATION,
+      JSON.stringify(orderedItems)
+    );
 
     res.status(200).json(
       new ApiResponse(200, "Got the ordered products", {
@@ -477,6 +479,7 @@ export async function handleOrderedSellerItems(req, res) {
 
 export async function handleDeliveryDone(req, res) {
   const orderId = parseInt(req.params.orderId);
+  const CACHE_KEY = "seller_ordered_list_" + req.seller.seller_id;
   if (!orderId) {
     throw new ApiError(400, "Invalid order id");
   }
@@ -489,6 +492,7 @@ export async function handleDeliveryDone(req, res) {
         delivery_status: true,
       },
     });
+    await redisClient.del(CACHE_KEY);
     res
       .status(200)
       .json(new ApiResponse(200, "Done with delivery", orderedItem));

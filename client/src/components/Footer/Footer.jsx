@@ -1,6 +1,7 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 
-function Footer() {
+const Footer = memo(function Footer() {
   return (
     <footer className="bg-gradient-to-r from-slate-200 to-white py-12">
       <div className="container mx-auto px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
@@ -119,6 +120,6 @@ function Footer() {
       </div>
     </footer>
   );
-}
+});
 
 export default Footer;

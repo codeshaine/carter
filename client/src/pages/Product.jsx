@@ -6,6 +6,7 @@ import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer/Footer";
 import { useFetch } from "../hooks/useFetch";
 import Loader from "../components/Loader/Loader";
+import SubLoader from "../components/Loader/SubLoader";
 
 function Product() {
   const { slugId } = useParams();
@@ -68,12 +69,17 @@ function Product() {
   if (productError)
     if (productError) console.log("Error:product error:", productError);
 
-  if (productLoading || reviewLoading) {
+  if (productLoading) {
     return <Loader />;
   }
 
   return (
     <>
+      {reviewLoading && (
+        <div className="fixed z-50">
+          <SubLoader />
+        </div>
+      )}
       <Navbar />
       <div className="my-4 container mx-auto p-6 bg-gradient-to-r from-gray-100 to-gray-300">
         <Toaster />

@@ -25,6 +25,7 @@ sellerRoutes.get(
 );
 sellerRoutes.post("/signup", isAuthenticated, handler(handleSellerSignup));
 
+/************seller profile******************* */
 sellerRoutes.post(
   "/profile/update",
   isAuthenticated,
@@ -32,6 +33,8 @@ sellerRoutes.post(
   upload.single("image"),
   handler(handleUpdateSellerProfile)
 );
+
+/***************seller  products*****************/
 sellerRoutes.post(
   "/product/new",
   isAuthenticated,
@@ -62,6 +65,7 @@ sellerRoutes.get(
   handler(handleGetAllSellerProducts)
 );
 
+//TODO pening redis cache deletion for this route
 sellerRoutes.get(
   "/products/ordered-list",
   isAuthenticated,
@@ -77,12 +81,12 @@ sellerRoutes.post(
 );
 
 //checking auth
-sellerRoutes.get(
-  "/check-auth",
-  isAuthenticated,
-  isSeller,
-  handler(checkSeller)
-);
+// sellerRoutes.get(
+//   "/check-auth",
+//   isAuthenticated,
+//   isSeller,
+//   handler(checkSeller)
+// );
 
 export { sellerRoutes };
 //TODO just consider using patch instead of post for updating the details

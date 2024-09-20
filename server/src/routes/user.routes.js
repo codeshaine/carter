@@ -54,6 +54,7 @@ userRouter.delete(
 
 //************handling product pruchase ****************
 userRouter.post("/product/buy-now", isAuthenticated, handler(handleBuyNow));
+
 userRouter.post(
   "/product/add-to-cart",
   isAuthenticated,

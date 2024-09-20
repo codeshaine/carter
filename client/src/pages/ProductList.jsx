@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import PaginationControls from "../components/PaginationController/PaginationController";
@@ -17,25 +17,28 @@ function ProductList() {
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const limit = 8;
 
-  const params = new URLSearchParams({
-    page: currentPage,
-    limit,
-    cat: selectedCategory,
-    lb: priceRange.min,
-    ub: priceRange.max,
-  });
+  const params = useMemo(() => {
+    return new URLSearchParams({
+      page: currentPage,
+      limit,
+      cat: selectedCategory,
+      lb: priceRange.min,
+      ub: priceRange.max,
+    });
+  }, [currentPage, selectedCategory, priceRange]);
 
   const [products, , productError, productLoading] = useFetch(
     `/api/product/f/${nameParam}?${params}`,
     [nameParam, currentPage, selectedCategory, priceRange]
   );
   useEffect(() => {
+    console.log("why this ", products);
     setTotalPageNumber(Math.ceil(products.tp / limit));
-  }, [nameParam, products.tp]);
+  }, [nameParam, products]);
 
-  const handlePageChange = (value) => {
+  const handlePageChange = useCallback((value) => {
     setCurrentPage(value);
-  };
+  }, []);
   if (productError) console.log("Error:\nproduct error:\n", productError);
 
   if (productLoading) return <Loader />;
