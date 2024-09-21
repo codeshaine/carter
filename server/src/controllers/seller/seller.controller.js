@@ -380,7 +380,14 @@ export async function handleGetAllSellerProducts(req, res) {
       throw new ApiError(400, "No product found for the seller");
     }
 
-    redisClient.setex(CACHE_KEY, CACHE_EXPIRATION, JSON.stringify(productData));
+    redisClient.setex(
+      CACHE_KEY,
+      CACHE_EXPIRATION,
+      JSON.stringify({
+        productData,
+        totalNumberOfProduct,
+      })
+    );
     return res.status(200).json(
       new ApiResponse(200, "Product details of seller", {
         productData,
@@ -455,7 +462,10 @@ export async function handleOrderedSellerItems(req, res) {
     redisClient.setex(
       CACHE_KEY,
       CACHE_EXPIRATION,
-      JSON.stringify(orderedItems)
+      JSON.stringify({
+        orderedItems,
+        totalNumberOfOrders,
+      })
     );
 
     res.status(200).json(
