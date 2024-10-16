@@ -4,18 +4,72 @@ import Navbar from "../components/Navbar/Navbar";
 import PaginationControls from "../components/PaginationController/PaginationController";
 import Footer from "../components/Footer/Footer";
 import { FaFilter, FaRupeeSign } from "react-icons/fa";
-import { useFetch } from "../hooks/useFetch";
 import Loader from "../components/Loader/Loader";
+import axios from "axios";
 
 function ProductList() {
+  // const { nameParam } = useParams();
+  // const [searchParams] = useSearchParams();
+  // const catQuery = searchParams.get("cat") || "";
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const [totalPageNumber, setTotalPageNumber] = useState(1);
+  // const limit = 8;
+  // const catRef = useRef(null);
+  // const lowLimit = useRef(null);
+  // const highLimit = useRef(null);
+  // //filter
+  // const [selectedCategory, setSelectedCategory] = useState(catQuery);
+  // const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+
+  // const params = useMemo(() => {
+  //   return new URLSearchParams({
+  //     page: currentPage,
+  //     limit,
+  //     cat: selectedCategory,
+  //     lb: priceRange.min,
+  //     ub: priceRange.max,
+  //   });
+  // }, [currentPage, selectedCategory, priceRange]);
+
+  // const [products, , productError, productLoading] = useFetch(
+  //   `/api/product/f/${nameParam}?${params}`,
+  //   [nameParam, currentPage, selectedCategory, priceRange]
+  // );
+  // useEffect(() => {
+  //   setTotalPageNumber(Math.ceil(products.tp / limit));
+  // }, [nameParam, products]);
+
+  // function handleApplyFilter() {
+  //   setSelectedCategory(catRef.current.value);
+  //   setPriceRange((prev) => {
+  //     return {
+  //       ...prev,
+  //       min: lowLimit.current.value,
+  //       max: highLimit.current.value,
+  //     };
+  //   });
+  // }
+
+  // const handlePageChange = useCallback((value) => {
+  //   setCurrentPage(value);
+  // }, []);
+  // if (productError) console.log("Error:\nproduct error:\n", productError);
+
+  // if (productLoading) return <Loader />;
+
+  //using git lol
   const { nameParam } = useParams();
   const [searchParams] = useSearchParams();
   const catQuery = searchParams.get("cat") || "";
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPageNumber, setTotalPageNumber] = useState(1);
+  const limit = 8;
+  const [products, setProducts] = useState([]);
+  const [productLoading, setProductLoading] = useState(false);
+
+  //filter
   const [selectedCategory, setSelectedCategory] = useState(catQuery);
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
-  const limit = 8;
 
   const params = useMemo(() => {
     return new URLSearchParams({
@@ -27,21 +81,55 @@ function ProductList() {
     });
   }, [currentPage, selectedCategory, priceRange]);
 
-  const [products, , productError, productLoading] = useFetch(
-    `/api/product/f/${nameParam}?${params}`,
-    [nameParam, currentPage, selectedCategory, priceRange]
-  );
+  //function to fetch data
+  async function getData() {
+    setProductLoading(true);
+    try {
+      const res = await axios.get(`/api/product/f/${nameParam}?${params}`);
+      setProducts(res.data.data);
+    } catch (err) {
+      console.log("Error:", err);
+    } finally {
+      setProductLoading(false);
+    }
+  }
+  //for initial page fetch
   useEffect(() => {
-    console.log("why this ", products);
+    (async () => {
+      await getData();
+    })();
+  }, []);
+
+  //for page change
+  useEffect(() => {
+    (async () => {
+      await getData();
+    })();
+  }, [currentPage]);
+
+  //setting page limit
+  useEffect(() => {
     setTotalPageNumber(Math.ceil(products.tp / limit));
   }, [nameParam, products]);
+
+  //fetching data when applying and clearing filter
+  async function handleApplyFilter() {
+    await getData();
+  }
+
+  async function handleClearFilter() {
+    setSelectedCategory("");
+    setPriceRange({ min: "", max: "" });
+    setCurrentPage(1);
+    await getData();
+  }
 
   const handlePageChange = useCallback((value) => {
     setCurrentPage(value);
   }, []);
-  if (productError) console.log("Error:\nproduct error:\n", productError);
 
   if (productLoading) return <Loader />;
+
   return (
     <>
       <Navbar />
@@ -78,7 +166,12 @@ function ProductList() {
               type="number"
               value={priceRange.min}
               onChange={(e) =>
-                setPriceRange({ ...priceRange, min: e.target.value })
+                setPriceRange((prev) => {
+                  return {
+                    ...prev,
+                    min: e.target.value,
+                  };
+                })
               }
               className="w-full border border-slate-300 rounded-full p-2 pl-4 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
               placeholder="₹"
@@ -93,25 +186,34 @@ function ProductList() {
               type="number"
               value={priceRange.max}
               onChange={(e) =>
-                setPriceRange({ ...priceRange, max: e.target.value })
+                setPriceRange((prev) => {
+                  return {
+                    ...prev,
+                    max: e.target.value,
+                  };
+                })
               }
               className="w-full border border-slate-300 rounded-full p-2 pl-4 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
               placeholder="₹"
             />
           </div>
         </div>
-
-        {/* Clear Filters Button */}
-        <button
-          onClick={() => {
-            setSelectedCategory("");
-            setPriceRange({ min: "", max: "" });
-            setCurrentPage(1);
-          }}
-          className="text-white bg-slate-700 hover:bg-slate-800 px-4 py-2 rounded-full"
-        >
-          Clear Filters
-        </button>
+        <div className="flex gap-4">
+          {/* Apply Filters Button */}
+          <button
+            onClick={handleApplyFilter}
+            className="text-white bg-slate-700 hover:bg-slate-800 px-4 py-2 rounded-full"
+          >
+            Apply Filters
+          </button>
+          {/* Clear Filters Button */}
+          <button
+            onClick={handleClearFilter}
+            className="text-white bg-slate-700 hover:bg-slate-800 px-4 py-2 rounded-full"
+          >
+            Clear Filters
+          </button>
+        </div>
       </div>
 
       <div className="container mx-auto p-6 bg-gradient-to-r from-white to-slate-200 min-h-screen my-4">
