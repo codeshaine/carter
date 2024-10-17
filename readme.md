@@ -48,7 +48,7 @@
 <!-- ## TODO
 
 - Bug : handle state when clikcing filters :: ✔️ (check)
-- Bug: seller product list cahcing isssue check the remaing cahcing issue
+- Bug: seller product list cahcing isssue check the remaing cahcing issue (just ckechj teh timeimg for everying )
 - Bug: delete review button is displaying for every user
 - Improvements: write review should be moved recommendation section showed in product page instead
 - Feature: add the discount

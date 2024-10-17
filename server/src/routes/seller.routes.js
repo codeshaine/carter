@@ -4,7 +4,6 @@ import { handleSellerSignup } from "../controllers/seller/sellerAuth.controller.
 import { isAuthenticated } from "../middlewares/auth.js";
 import { isSeller } from "../middlewares/isSeller.js";
 import {
-  checkSeller,
   handleDeleteProduct,
   handleDeliveryDone,
   handleGetAllSellerProducts,
@@ -79,14 +78,6 @@ sellerRoutes.post(
   isSeller,
   handler(handleDeliveryDone)
 );
-
-//checking auth
-// sellerRoutes.get(
-//   "/check-auth",
-//   isAuthenticated,
-//   isSeller,
-//   handler(checkSeller)
-// );
 
 export { sellerRoutes };
 //TODO just consider using patch instead of post for updating the details

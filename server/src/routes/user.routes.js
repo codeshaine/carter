@@ -83,14 +83,6 @@ userRouter.get(
   isAuthenticated,
   handler(handleGetOrders)
 );
-
-//!what is this route
-// userRouter.get(
-//   "/product/ordered-items",
-//   isAuthenticated,
-//   handler(handleGetOrderedDetails)
-// );
-
 userRouter.delete(
   "/product/order/cancel/:orderId",
   isAuthenticated,

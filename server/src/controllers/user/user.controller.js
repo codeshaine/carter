@@ -138,7 +138,6 @@ export async function handleUpdateUser(req, res) {
 
 //*********************** handling user review ***********************
 
-//TODO:priority
 export async function handlePushReview(req, res) {
   const slugId = req.params.id;
   const CACHE_KEY = "product:review:" + slugId;
@@ -208,7 +207,6 @@ export async function handlePushReview(req, res) {
   }
 }
 
-//TODO:priority
 export async function handleDeleteReview(req, res) {
   const slug = req.params.id;
   const CACHE_KEY = "product:review:" + slugId;
@@ -250,7 +248,6 @@ export async function handleDeleteReview(req, res) {
 
 //***********************hanlding user address************************
 
-//TODO:priority
 export async function handldeAddUserAddress(req, res) {
   const userAddress = req.body;
   const validate = validateUserAddress(userAddress);
@@ -279,10 +276,10 @@ export async function handldeAddUserAddress(req, res) {
   }
 }
 
-//TODO:priority
 export async function handleDeleteUserAddress(req, res) {
   const addressId = parseInt(req.params.addressId);
   const CACHE_KEY = "user:user_address:" + req.user.user_id;
+
   if (!addressId) {
     throw new ApiError(400, "Provide valid address id");
   }
@@ -309,7 +306,7 @@ export async function handleDeleteUserAddress(req, res) {
 }
 
 export async function handleGetUserAddress(req, res) {
-  const CACHE_KEY = "user:user_address_" + req.user.user_id;
+  const CACHE_KEY = "user:user_address:" + req.user.user_id;
   const CACHE_EXIPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
@@ -337,10 +334,10 @@ export async function handleGetUserAddress(req, res) {
 
 //*********************handling buy and order now feature **************
 
-//TODO:priority
 export async function handleBuyNow(req, res) {
   const buyNowBody = req.body;
-  const CACHE_KEY = "user:ordered_items_" + req.user.user_id;
+  const CACHE_KEY = "user:ordered_items:" + req.user.user_id;
+
   const validate = validateBuyNowBody(buyNowBody);
   if (!validate.success) {
     throw new ApiError(400, "Invalid input", validate.error);
@@ -409,110 +406,8 @@ export async function handleBuyNow(req, res) {
     throw new ApiError(500, "Error occured while creating order", err.stack);
   }
 }
-
-//TODO:priority
-export async function handleAddToCart(req, res) {
-  const productBody = req.body;
-  const validate = validateAddToCart(productBody);
-  if (!validate.success) {
-    throw new ApiError(400, "Invalid input", validate.error);
-  }
-
-  const CACHE_KEY = "user:cart_items_" + req.user.user_id;
-
-  try {
-    const cart = await prismaClient.carts.upsert({
-      where: {
-        user_id: req.user.user_id,
-      },
-      update: {},
-      create: {
-        user_id: req.user.user_id,
-      },
-    });
-    const product = await prismaClient.products.findFirst({
-      where: {
-        slug: productBody.slug,
-      },
-      include: {
-        seller: {
-          select: {
-            user: {
-              select: {
-                user_id: true,
-              },
-            },
-          },
-        },
-      },
-    });
-    if (!product) {
-      throw new ApiError(400, "Bad Request No product exist");
-    }
-    if (product.seller.user.user_id === req.user.user_id) {
-      throw new ApiError(400, "You cant add your own product to the cart");
-    }
-    const newCartItem = await prismaClient.cartItems.upsert({
-      where: {
-        product_id_cart_id: {
-          cart_id: cart.cart_id,
-          product_id: product.product_id,
-        },
-      },
-      update: {
-        quantity: {
-          increment: productBody.quantity,
-        },
-      },
-      create: {
-        cart_id: cart.cart_id,
-        product_id: product.product_id,
-        quantity: productBody.quantity,
-      },
-    });
-
-    await redisClient.del(CACHE_KEY);
-    res
-      .status(201)
-      .json(new ApiResponse(201, "New item added to cart", newCartItem));
-  } catch (err) {
-    console.error(err);
-    if (err instanceof ApiError) {
-      throw new ApiError(err.statuscode, err.message, err.stack);
-    }
-    throw new ApiError(500, "Failed to add item to cart", err);
-  }
-}
-
-//TODO:priority
-export async function handleDeleteFromCart(req, res) {
-  const cartItemId = parseInt(req.params.itemId);
-
-  const CACHE_KEY = "user:cart_items_" + req.user.user_id;
-  try {
-    await prismaClient.cartItems.delete({
-      where: {
-        cart_item_id: cartItemId,
-      },
-    });
-
-    await redisClient.del(CACHE_KEY);
-    res.status(200).json(new ApiResponse(200, "Deleted successfully"));
-  } catch (err) {
-    console.error(err);
-    if (err instanceof ApiError) {
-      throw new ApiError(err.statuscode, err.message, err.stack);
-    }
-    if (err.code === "P2025" && err.meta?.cause.includes("not exist")) {
-      throw new ApiError(400, "No cart item exist", err);
-    }
-    throw new ApiError(500, "Deletetion Failed", err);
-  }
-}
-
-//TODO:priority
 export async function handleOrderNow(req, res) {
-  const CACHE_KEY = "user:ordered_items_" + req.user.user_id;
+  const CACHE_KEY = "user:ordered_items:" + req.user.user_id;
   const userAddress = req.body.userAddress;
   if (!userAddress) {
     throw new ApiError(400, "Provide valid user address");
@@ -595,10 +490,108 @@ export async function handleOrderNow(req, res) {
   }
 }
 
-//TODO:priority
+//********************cart items*********************************/
+export async function handleAddToCart(req, res) {
+  const productBody = req.body;
+  const validate = validateAddToCart(productBody);
+  if (!validate.success) {
+    throw new ApiError(400, "Invalid input", validate.error);
+  }
+
+  const CACHE_KEY = "user:cart_items:" + req.user.user_id;
+
+  try {
+    const cart = await prismaClient.carts.upsert({
+      where: {
+        user_id: req.user.user_id,
+      },
+      update: {},
+      create: {
+        user_id: req.user.user_id,
+      },
+    });
+    const product = await prismaClient.products.findFirst({
+      where: {
+        slug: productBody.slug,
+      },
+      include: {
+        seller: {
+          select: {
+            user: {
+              select: {
+                user_id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!product) {
+      throw new ApiError(400, "Bad Request No product exist");
+    }
+    if (product.seller.user.user_id === req.user.user_id) {
+      throw new ApiError(400, "You cant add your own product to the cart");
+    }
+    const newCartItem = await prismaClient.cartItems.upsert({
+      where: {
+        product_id_cart_id: {
+          cart_id: cart.cart_id,
+          product_id: product.product_id,
+        },
+      },
+      update: {
+        quantity: {
+          increment: productBody.quantity,
+        },
+      },
+      create: {
+        cart_id: cart.cart_id,
+        product_id: product.product_id,
+        quantity: productBody.quantity,
+      },
+    });
+
+    await redisClient.del(CACHE_KEY);
+    res
+      .status(201)
+      .json(new ApiResponse(201, "New item added to cart", newCartItem));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof ApiError) {
+      throw new ApiError(err.statuscode, err.message, err.stack);
+    }
+    throw new ApiError(500, "Failed to add item to cart", err);
+  }
+}
+
+export async function handleDeleteFromCart(req, res) {
+  const cartItemId = parseInt(req.params.itemId);
+  const CACHE_KEY = "user:cart_items:" + req.user.user_id;
+
+  try {
+    await prismaClient.cartItems.delete({
+      where: {
+        cart_item_id: cartItemId,
+      },
+    });
+
+    await redisClient.del(CACHE_KEY);
+    res.status(200).json(new ApiResponse(200, "Deleted successfully"));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof ApiError) {
+      throw new ApiError(err.statuscode, err.message, err.stack);
+    }
+    if (err.code === "P2025" && err.meta?.cause.includes("not exist")) {
+      throw new ApiError(400, "No cart item exist", err);
+    }
+    throw new ApiError(500, "Deletetion Failed", err);
+  }
+}
+
 export async function handleGetCartItems(req, res) {
   const userId = req.user.user_id;
-  const CACHE_KEY = "user:cart_items_" + req.user.user_id;
+  const CACHE_KEY = "user:cart_items:" + req.user.user_id;
   const CACHE_EXIPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
@@ -647,9 +640,8 @@ export async function handleGetCartItems(req, res) {
 
 //********************managing ordered items ***********************
 
-//TODO:priority
 export async function handleGetOrders(req, res) {
-  const CACHE_KEY = "user:ordered_items_" + req.user.user_id;
+  const CACHE_KEY = "user:ordered_items:" + req.user.user_id;
   const CACHE_EXIPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
@@ -692,41 +684,9 @@ export async function handleGetOrders(req, res) {
   }
 }
 
-export async function handleGetOrderedDetails(req, res) {
-  try {
-    const orderedItemsData = await prismaClient.orders.findMany({
-      where: {
-        user_id: req.user.user_id,
-      },
-      select: {
-        order_id: true,
-        product: {
-          select: {
-            slug: true,
-          },
-        },
-        user_address_id: true,
-        delivery_status: true,
-        quantity: true,
-        total: true,
-      },
-    });
-    return res
-      .status(200)
-      .json(new ApiResponse(200, "ordered items", orderedItemsData));
-  } catch (err) {
-    console.error(err);
-    if (err instanceof ApiError) {
-      throw new ApiError(err.statuscode, err.message, err.stack);
-    }
-    throw new ApiError(500, "Error orccured while cancelling orders", err);
-  }
-}
-
-//TODO:priority
 export async function handleDeleteOrder(req, res) {
   const orderId = parseInt(req.params.orderId);
-  const CACHE_KEY = "ordered_items_" + req.user.user_id;
+
   if (!orderId) {
     throw new ApiError(400, "Provide order id");
   }
@@ -764,8 +724,12 @@ export async function handleDeleteOrder(req, res) {
         order_id: orderId,
       },
     });
+
     //deleting redis cache for ordered items of seller
-    const CACHE_KEY_2 = "seller_ordered_list_" + order.product.seller_id;
+    const CACHE_KEY_1 = "user:ordered_items:" + req.user.user_id;
+    const CACHE_KEY_2 = "seller:seller_ordered_list:" + req.seller.seller_id;
+
+    await redisClient.del(CACHE_KEY_1);
     await redisClient.del(CACHE_KEY_2);
 
     res
@@ -784,8 +748,8 @@ export async function handleDeleteOrder(req, res) {
 }
 
 export async function checkUser(req, res) {
-  const CACHE_KEY = "user:check_user_auth_" + req.user.user_id;
-  const CACHE_EXIPIRATION = 30;
+  const CACHE_KEY = "user:check_user_auth_with_seller:" + req.user.user_id;
+  const CACHE_EXIPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
     return res

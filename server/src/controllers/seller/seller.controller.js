@@ -12,8 +12,9 @@ import cloudinary from "../../services/cloudinary/config.js";
 import fs from "fs/promises";
 import { urlExtractor } from "../../services/cloudinary/urlExtractor.js";
 
+//*************************** seller details ********************************/
 export async function handleGetSellerDetails(req, res) {
-  const CACHE_KEY = "seller:seller_details" + req.seller.seller_id;
+  const CACHE_KEY = "seller:seller_details:" + req.seller.seller_id;
   const CACHE_EXPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
@@ -59,7 +60,8 @@ export async function handleGetSellerDetails(req, res) {
 export async function handleUpdateSellerProfile(req, res) {
   const sellerBody = req.body;
   const validate = validateUpdateSellerBody(sellerBody);
-  const CACHE_KEY = "seller:seller_details" + req.seller.seller_id;
+  const CACHE_KEY = "seller:seller_details:" + req.seller.seller_id;
+
   if (!validate.success) {
     throw new ApiError(400, "Invalid type of input", validate.error);
   }
@@ -130,6 +132,7 @@ export async function handleUpdateSellerProfile(req, res) {
   }
 }
 
+//*************************** seller product ********************************/
 export async function handleUploadNewProduct(req, res) {
   req.body.price = Number(req.body.price);
   req.body.stock = Number(req.body.stock);
@@ -138,7 +141,7 @@ export async function handleUploadNewProduct(req, res) {
   if (!validate.success) {
     throw new ApiError(400, "Invalid product details", validate.error);
   }
-  const CACHE_KEY = "seller:all_seller_products_" + req.seller.seller_id;
+  const CACHE_KEY = "seller:all_seller_products:" + req.seller.seller_id;
 
   const slugName = makeSlug(productData.name);
   try {
@@ -202,12 +205,12 @@ export async function handleUploadNewProduct(req, res) {
     }
   }
 }
-//TODO: priority
 export async function handleUpdateProduct(req, res) {
   const productId = req.params.id;
   if (!productId) {
     throw new ApiError(400, "Provide the valid product id");
   }
+  const CACHE_KEY = "seller:all_seller_products:" + req.seller.seller_id;
   const productBody = req.body;
   const validate = validateUpdateProductBody(productBody);
   if (!validate.success) {
@@ -237,6 +240,7 @@ export async function handleUpdateProduct(req, res) {
       },
       data: updateFileds,
     });
+    await redisClient.del(CACHE_KEY);
     res
       .status(200)
       .json(
@@ -254,8 +258,8 @@ export async function handleUpdateProduct(req, res) {
     );
   }
 }
-//TODO: priority
 export async function handleDeleteProduct(req, res) {
+  const CACHE_KEY = "seller:all_seller_products:" + req.seller.seller_id;
   const slugId = req.params.id;
   if (!slugId) {
     throw new ApiError("Provide valid product Id");
@@ -310,6 +314,8 @@ export async function handleDeleteProduct(req, res) {
       },
     });
 
+    await redisClient.del(CACHE_KEY);
+
     res
       .status(200)
       .json(new ApiResponse(200, "product deleted successfully", data));
@@ -333,8 +339,9 @@ export async function handleGetAllSellerProducts(req, res) {
   if (!sellerId) {
     throw new ApiError(403, "invalid seller id");
   }
-  const CACHE_KEY = "seller:all_seller_products_" + sellerId + "_" + page;
-  const CACHE_EXPIRATION = 30;
+  const CACHE_KEY =
+    "seller:all_seller_products:" + req.seller.seller_id + ":" + page;
+  const CACHE_EXPIRATION = 60;
   const cachedProductData = await redisClient.get(CACHE_KEY);
   if (cachedProductData) {
     return res
@@ -406,12 +413,13 @@ export async function handleGetAllSellerProducts(req, res) {
   }
 }
 
+//*************************** seller orders ********************************/
 export async function handleOrderedSellerItems(req, res) {
-  const CACHE_EXPIRATION = 5;
+  const CACHE_EXPIRATION = 60;
   const limit = parseInt(req.query.limit, 10) || 6;
   const page = parseInt(req.query.page, 10) || 1;
   const CACHE_KEY =
-    "seller:seller_ordered_list_" + req.seller.seller_id + "_" + page;
+    "seller:seller_ordered_list:" + req.seller.seller_id + ":" + page;
 
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
@@ -487,10 +495,11 @@ export async function handleOrderedSellerItems(req, res) {
     );
   }
 }
-//TODO: priority
+
 export async function handleDeliveryDone(req, res) {
   const orderId = parseInt(req.params.orderId);
-  const CACHE_KEY = "seller:seller_ordered_list_" + req.seller.seller_id;
+  const CACHE_KEY = "seller:seller_ordered_list:" + req.seller.seller_id;
+
   if (!orderId) {
     throw new ApiError(400, "Invalid order id");
   }
@@ -513,28 +522,5 @@ export async function handleDeliveryDone(req, res) {
       throw new ApiError(400, "Order not exist", err);
     }
     throw new ApiError(500, "Error occured during transaction", err);
-  }
-}
-
-export async function checkSeller(req, res) {
-  try {
-    const seller = await prismaClient.sellers.findFirst({
-      where: {
-        seller_id: req.seller.seller_id,
-      },
-      select: {
-        seller_name: true,
-      },
-    });
-    if (!seller) {
-      throw new ApiError(400, "Seller does not exist");
-    }
-    res.status(200).json(new ApiResponse(200, "Seller exist", seller));
-  } catch (err) {
-    console.error(err);
-    if (err instanceof ApiError) {
-      throw new ApiError(err.statuscode, err.message, err);
-    }
-    throw new ApiError(500, "Error occrured while checking the seller", err);
   }
 }
