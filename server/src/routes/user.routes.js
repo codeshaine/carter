@@ -112,11 +112,9 @@ userRouter.get(
   "/auth/google/callback",
   passport.authenticate("google", {
     successRedirect: process.env.CLIENT_URL,
-    failureRedirect: process.env.CLIENT_URL + "/", //TODO have to make the route or chagne it
+    failureRedirect: process.env.CLIENT_URL + "/",
   })
 );
 
-// TODO use this route for to know if the login successful or not
-//TODO reomve this
 userRouter.get("/check-auth", isAuthenticated, handler(checkUser));
 export { userRouter };

@@ -141,7 +141,7 @@ export async function handleUploadNewProduct(req, res) {
   if (!validate.success) {
     throw new ApiError(400, "Invalid product details", validate.error);
   }
-  const CACHE_KEY = "seller:all_seller_products:" + req.seller.seller_id;
+  const CACHE_KEY = "seller:all_seller_products:" + req.seller.seller_id + ":*";
 
   const slugName = makeSlug(productData.name);
   try {
@@ -175,7 +175,9 @@ export async function handleUploadNewProduct(req, res) {
 
       newProduct["images"] = newLink;
     }
-    await redisClient.del(CACHE_KEY);
+
+    const keys = await redisClient.keys(CACHE_KEY);
+    await redisClient.del(keys);
     return res
       .status(201)
       .json(new ApiResponse(201, "Product createrd", newProduct));
@@ -210,7 +212,8 @@ export async function handleUpdateProduct(req, res) {
   if (!productId) {
     throw new ApiError(400, "Provide the valid product id");
   }
-  const CACHE_KEY = "seller:all_seller_products:" + req.seller.seller_id;
+  const CACHE_KEY = "seller:all_seller_products:" + req.seller.seller_id + ":*";
+
   const productBody = req.body;
   const validate = validateUpdateProductBody(productBody);
   if (!validate.success) {
@@ -240,7 +243,9 @@ export async function handleUpdateProduct(req, res) {
       },
       data: updateFileds,
     });
-    await redisClient.del(CACHE_KEY);
+
+    const keys = await redisClient.keys(CACHE_KEY);
+    await redisClient.del(keys);
     res
       .status(200)
       .json(
@@ -259,7 +264,8 @@ export async function handleUpdateProduct(req, res) {
   }
 }
 export async function handleDeleteProduct(req, res) {
-  const CACHE_KEY = "seller:all_seller_products:" + req.seller.seller_id;
+  const CACHE_KEY = "seller:all_seller_products:" + req.seller.seller_id + ":*";
+
   const slugId = req.params.id;
   if (!slugId) {
     throw new ApiError("Provide valid product Id");
@@ -313,8 +319,8 @@ export async function handleDeleteProduct(req, res) {
         slug: slugId,
       },
     });
-
-    await redisClient.del(CACHE_KEY);
+    const keys = await redisClient.keys(CACHE_KEY);
+    await redisClient.del(keys);
 
     res
       .status(200)
@@ -415,7 +421,7 @@ export async function handleGetAllSellerProducts(req, res) {
 
 //*************************** seller orders ********************************/
 export async function handleOrderedSellerItems(req, res) {
-  const CACHE_EXPIRATION = 60;
+  const CACHE_EXPIRATION = 60 * 60;
   const limit = parseInt(req.query.limit, 10) || 6;
   const page = parseInt(req.query.page, 10) || 1;
   const CACHE_KEY =
@@ -498,7 +504,7 @@ export async function handleOrderedSellerItems(req, res) {
 
 export async function handleDeliveryDone(req, res) {
   const orderId = parseInt(req.params.orderId);
-  const CACHE_KEY = "seller:seller_ordered_list:" + req.seller.seller_id;
+  const CACHE_KEY = "seller:seller_ordered_list:" + req.seller.seller_id + ":*";
 
   if (!orderId) {
     throw new ApiError(400, "Invalid order id");
@@ -512,7 +518,8 @@ export async function handleDeliveryDone(req, res) {
         delivery_status: true,
       },
     });
-    await redisClient.del(CACHE_KEY);
+    const keys = await redisClient.keys(CACHE_KEY);
+    await redisClient.del(keys);
     res
       .status(200)
       .json(new ApiResponse(200, "Done with delivery", orderedItem));

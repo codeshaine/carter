@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import Navbar from "../components/Navbar/Navbar";
@@ -7,6 +7,7 @@ import Footer from "../components/Footer/Footer";
 import { useFetch } from "../hooks/useFetch";
 import Loader from "../components/Loader/Loader";
 import SubLoader from "../components/Loader/SubLoader";
+import { AuthContext } from "../context/AuthContext";
 
 function Product() {
   const { slugId } = useParams();
@@ -14,6 +15,7 @@ function Product() {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
+  const { user } = useContext(AuthContext);
   const [productDetails, setProductDetails, productError, productLoading] =
     useFetch(`/api/product/${slugId}`, [navigate]);
 
@@ -174,12 +176,14 @@ function Product() {
                   <p className="text-slate-700">{review.user.email}</p>
                   <p className="text-yellow-500">{"★".repeat(review.star)}</p>
                   <p className="text-slate-800">{review.review}</p>
-                  <button
-                    onClick={() => handleDeleteReview(productDetails.slug)}
-                    className="text-red-600 mt-2 hover:text-red-800 transition"
-                  >
-                    Delete Review
-                  </button>
+                  {review.user?.email == user?.email && (
+                    <button
+                      onClick={() => handleDeleteReview(productDetails.slug)}
+                      className="text-red-600 mt-2 hover:text-red-800 transition"
+                    >
+                      Delete Review
+                    </button>
+                  )}
                 </div>
               </div>
             ))

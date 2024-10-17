@@ -36,7 +36,6 @@ function ProductList() {
 
   //function to fetch data
   const getData = useCallback(async () => {
-    console.log("this is get data frunction");
     setProductLoading(true);
     try {
       const res = await axios.get(`/api/product/f/${nameParam}?${params}`);
@@ -50,20 +49,17 @@ function ProductList() {
 
   useEffect(() => {
     (async () => {
-      console.log("fetching data");
       await getData();
     })();
   }, [fetchData]);
 
   //for page change
   useEffect(() => {
-    console.log("changin the state of fetch");
     setFetchData((prev) => !prev);
   }, [currentPage, nameParam, searchParams]);
 
   //setting page limit
   useEffect(() => {
-    console.log("changing limit");
     setTotalPageNumber(Math.ceil(products.tp / limit));
   }, [products]);
 

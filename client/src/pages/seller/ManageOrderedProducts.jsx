@@ -33,11 +33,13 @@ function ManageOrderedProducts() {
         toast.success("Order marked as delivered.");
         setData((prevItems) => ({
           ...prevItems,
-          orderedItems: prevItems.map((item) =>
-            item.order_id === orderId
-              ? { ...item, delivery_status: true }
-              : item
-          ),
+          orderedItems: prevItems.orderedItems
+            ? prevItems.orderedItems.map((item) =>
+                item.order_id === orderId
+                  ? { ...item, delivery_status: true }
+                  : item
+              )
+            : [],
         }));
       } catch (err) {
         toast.error("Failed to mark as delivered.");

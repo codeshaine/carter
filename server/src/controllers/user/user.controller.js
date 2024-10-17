@@ -140,7 +140,8 @@ export async function handleUpdateUser(req, res) {
 
 export async function handlePushReview(req, res) {
   const slugId = req.params.id;
-  const CACHE_KEY = "product:review:" + slugId;
+  const CACHE_KEY_1 = "product:review:" + slugId;
+  const CACHE_KEY_2 = "product:single_product:" + slugId;
 
   if (!slugId) {
     throw new ApiError(400, "product id is missing");
@@ -193,7 +194,8 @@ export async function handlePushReview(req, res) {
       },
     });
 
-    await redisClient.del(CACHE_KEY);
+    await redisClient.del(CACHE_KEY_1);
+    await redisClient.del(CACHE_KEY_2);
     res.status(201).json(new ApiResponse(201, "review created", newReview));
   } catch (err) {
     console.error(err);
@@ -209,7 +211,8 @@ export async function handlePushReview(req, res) {
 
 export async function handleDeleteReview(req, res) {
   const slug = req.params.id;
-  const CACHE_KEY = "product:review:" + slugId;
+  const CACHE_KEY_1 = "product:review:" + slug;
+  const CACHE_KEY_2 = "product:single_product:" + slug;
 
   if (!slug) {
     throw new ApiError(400, "provide valid slug id");
@@ -232,7 +235,8 @@ export async function handleDeleteReview(req, res) {
       },
     });
 
-    await redisClient.del(CACHE_KEY);
+    await redisClient.del(CACHE_KEY_1);
+    await redisClient.del(CACHE_KEY_2);
     res.status(200).json(new ApiResponse(200, "Deleted successfully", review));
   } catch (err) {
     console.error(err);
@@ -763,7 +767,7 @@ export async function checkUser(req, res) {
       },
       select: {
         name: true,
-
+        email: true,
         isSeller: true,
         sellers: {
           select: {
