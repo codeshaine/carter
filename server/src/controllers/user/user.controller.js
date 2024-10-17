@@ -11,14 +11,11 @@ import fs from "fs/promises";
 import redisClient from "../../clients/redisCleint.js";
 import { validateUserAddress } from "../../services/zod/userAddress.js";
 import cloudinary from "../../services/cloudinary/config.js";
-import { deleteRedisKey } from "../../services/redis/redisdeleteKey.js";
-import { error } from "console";
 import { urlExtractor } from "../../services/cloudinary/urlExtractor.js";
 
 // ******************managin user profile********************************
 export async function handleGetUserInfo(req, res) {
-  const CACHE_KEY = "user_details" + req.user.user_id;
-  //TODO adjust
+  const CACHE_KEY = "user:user_details:" + req.user.user_id;
   const CACHE_EXPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
@@ -60,7 +57,7 @@ export async function handleUpdateUser(req, res) {
   if (!validate.success) {
     throw new ApiError(400, "Invalid type of input", validate.error);
   }
-  const CACHE_KEY = "user_details" + req.user.user_id;
+  const CACHE_KEY = "user:user_details:" + req.user.user_id;
 
   //fetching previous user profile
   let previous = null;
@@ -139,11 +136,12 @@ export async function handleUpdateUser(req, res) {
   }
 }
 
-//TODO
 //*********************** handling user review ***********************
+
+//TODO:priority
 export async function handlePushReview(req, res) {
   const slugId = req.params.id;
-  const CACHE_KEY = slugId + "_reviews";
+  const CACHE_KEY = "product:review:" + slugId;
 
   if (!slugId) {
     throw new ApiError(400, "product id is missing");
@@ -209,9 +207,11 @@ export async function handlePushReview(req, res) {
     throw new ApiError(500, "Error occured while creating review", err.stack);
   }
 }
+
+//TODO:priority
 export async function handleDeleteReview(req, res) {
   const slug = req.params.id;
-  const CACHE_KEY = slug + "_reviews";
+  const CACHE_KEY = "product:review:" + slugId;
 
   if (!slug) {
     throw new ApiError(400, "provide valid slug id");
@@ -249,10 +249,12 @@ export async function handleDeleteReview(req, res) {
 }
 
 //***********************hanlding user address************************
+
+//TODO:priority
 export async function handldeAddUserAddress(req, res) {
   const userAddress = req.body;
   const validate = validateUserAddress(userAddress);
-  const CACHE_KEY = "user_address_" + req.user.user_id;
+  const CACHE_KEY = "user:user_address:" + req.user.user_id;
   if (!validate.success) {
     throw new ApiError(400, "Invalid Input", validate.error);
   }
@@ -277,10 +279,10 @@ export async function handldeAddUserAddress(req, res) {
   }
 }
 
+//TODO:priority
 export async function handleDeleteUserAddress(req, res) {
   const addressId = parseInt(req.params.addressId);
-
-  const CACHE_KEY = "user_address_" + req.user.user_id;
+  const CACHE_KEY = "user:user_address:" + req.user.user_id;
   if (!addressId) {
     throw new ApiError(400, "Provide valid address id");
   }
@@ -307,7 +309,7 @@ export async function handleDeleteUserAddress(req, res) {
 }
 
 export async function handleGetUserAddress(req, res) {
-  const CACHE_KEY = "user_address_" + req.user.user_id;
+  const CACHE_KEY = "user:user_address_" + req.user.user_id;
   const CACHE_EXIPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
@@ -334,9 +336,11 @@ export async function handleGetUserAddress(req, res) {
 }
 
 //*********************handling buy and order now feature **************
+
+//TODO:priority
 export async function handleBuyNow(req, res) {
   const buyNowBody = req.body;
-  const CACHE_KEY = "ordered_items_" + req.user.user_id;
+  const CACHE_KEY = "user:ordered_items_" + req.user.user_id;
   const validate = validateBuyNowBody(buyNowBody);
   if (!validate.success) {
     throw new ApiError(400, "Invalid input", validate.error);
@@ -391,7 +395,7 @@ export async function handleBuyNow(req, res) {
       },
     });
     //seller ordered list is deleted from cache
-    const CACHE_KEY_2 = "seller_ordered_list_" + product.seller_id;
+    const CACHE_KEY_2 = "seller:seller_ordered_list_" + product.seller_id;
     await redisClient.del(CACHE_KEY_2);
     await redisClient.del(CACHE_KEY);
     res.status(201).json(new ApiResponse(201, "Order created", order));
@@ -406,6 +410,7 @@ export async function handleBuyNow(req, res) {
   }
 }
 
+//TODO:priority
 export async function handleAddToCart(req, res) {
   const productBody = req.body;
   const validate = validateAddToCart(productBody);
@@ -413,7 +418,7 @@ export async function handleAddToCart(req, res) {
     throw new ApiError(400, "Invalid input", validate.error);
   }
 
-  const CACHE_KEY = "cart_items_" + req.user.user_id;
+  const CACHE_KEY = "user:cart_items_" + req.user.user_id;
 
   try {
     const cart = await prismaClient.carts.upsert({
@@ -479,10 +484,11 @@ export async function handleAddToCart(req, res) {
   }
 }
 
+//TODO:priority
 export async function handleDeleteFromCart(req, res) {
   const cartItemId = parseInt(req.params.itemId);
 
-  const CACHE_KEY = "cart_items_" + req.user.user_id;
+  const CACHE_KEY = "user:cart_items_" + req.user.user_id;
   try {
     await prismaClient.cartItems.delete({
       where: {
@@ -504,8 +510,9 @@ export async function handleDeleteFromCart(req, res) {
   }
 }
 
+//TODO:priority
 export async function handleOrderNow(req, res) {
-  const CACHE_KEY = "ordered_items_" + req.user.user_id;
+  const CACHE_KEY = "user:ordered_items_" + req.user.user_id;
   const userAddress = req.body.userAddress;
   if (!userAddress) {
     throw new ApiError(400, "Provide valid user address");
@@ -588,9 +595,10 @@ export async function handleOrderNow(req, res) {
   }
 }
 
+//TODO:priority
 export async function handleGetCartItems(req, res) {
   const userId = req.user.user_id;
-  const CACHE_KEY = "cart_items_" + req.user.user_id;
+  const CACHE_KEY = "user:cart_items_" + req.user.user_id;
   const CACHE_EXIPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
@@ -638,8 +646,10 @@ export async function handleGetCartItems(req, res) {
 }
 
 //********************managing ordered items ***********************
+
+//TODO:priority
 export async function handleGetOrders(req, res) {
-  const CACHE_KEY = "ordered_items_" + req.user.user_id;
+  const CACHE_KEY = "user:ordered_items_" + req.user.user_id;
   const CACHE_EXIPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
@@ -713,6 +723,7 @@ export async function handleGetOrderedDetails(req, res) {
   }
 }
 
+//TODO:priority
 export async function handleDeleteOrder(req, res) {
   const orderId = parseInt(req.params.orderId);
   const CACHE_KEY = "ordered_items_" + req.user.user_id;
@@ -773,7 +784,7 @@ export async function handleDeleteOrder(req, res) {
 }
 
 export async function checkUser(req, res) {
-  const CACHE_KEY = "check_user_auth_" + req.user.user_id;
+  const CACHE_KEY = "user:check_user_auth_" + req.user.user_id;
   const CACHE_EXIPIRATION = 30;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {

@@ -13,7 +13,7 @@ import fs from "fs/promises";
 import { urlExtractor } from "../../services/cloudinary/urlExtractor.js";
 
 export async function handleGetSellerDetails(req, res) {
-  const CACHE_KEY = "seller_details" + req.seller.seller_id;
+  const CACHE_KEY = "seller:seller_details" + req.seller.seller_id;
   const CACHE_EXPIRATION = 60;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
@@ -59,7 +59,7 @@ export async function handleGetSellerDetails(req, res) {
 export async function handleUpdateSellerProfile(req, res) {
   const sellerBody = req.body;
   const validate = validateUpdateSellerBody(sellerBody);
-  const CACHE_KEY = "seller_details" + req.seller.seller_id;
+  const CACHE_KEY = "seller:seller_details" + req.seller.seller_id;
   if (!validate.success) {
     throw new ApiError(400, "Invalid type of input", validate.error);
   }
@@ -138,7 +138,7 @@ export async function handleUploadNewProduct(req, res) {
   if (!validate.success) {
     throw new ApiError(400, "Invalid product details", validate.error);
   }
-  const CACHE_KEY = "all_seller_products_" + req.seller.seller_id;
+  const CACHE_KEY = "seller:all_seller_products_" + req.seller.seller_id;
 
   const slugName = makeSlug(productData.name);
   try {
@@ -202,8 +202,7 @@ export async function handleUploadNewProduct(req, res) {
     }
   }
 }
-
-//later
+//TODO: priority
 export async function handleUpdateProduct(req, res) {
   const productId = req.params.id;
   if (!productId) {
@@ -255,7 +254,7 @@ export async function handleUpdateProduct(req, res) {
     );
   }
 }
-
+//TODO: priority
 export async function handleDeleteProduct(req, res) {
   const slugId = req.params.id;
   if (!slugId) {
@@ -310,6 +309,7 @@ export async function handleDeleteProduct(req, res) {
         slug: slugId,
       },
     });
+
     res
       .status(200)
       .json(new ApiResponse(200, "product deleted successfully", data));
@@ -333,8 +333,7 @@ export async function handleGetAllSellerProducts(req, res) {
   if (!sellerId) {
     throw new ApiError(403, "invalid seller id");
   }
-  //TODO reduce the cache time
-  const CACHE_KEY = "all_seller_products_" + sellerId;
+  const CACHE_KEY = "seller:all_seller_products_" + sellerId + "_" + page;
   const CACHE_EXPIRATION = 30;
   const cachedProductData = await redisClient.get(CACHE_KEY);
   if (cachedProductData) {
@@ -408,10 +407,12 @@ export async function handleGetAllSellerProducts(req, res) {
 }
 
 export async function handleOrderedSellerItems(req, res) {
-  const CACHE_KEY = "seller_ordered_list_" + req.seller.seller_id;
   const CACHE_EXPIRATION = 5;
   const limit = parseInt(req.query.limit, 10) || 6;
   const page = parseInt(req.query.page, 10) || 1;
+  const CACHE_KEY =
+    "seller:seller_ordered_list_" + req.seller.seller_id + "_" + page;
+
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
     return res
@@ -486,10 +487,10 @@ export async function handleOrderedSellerItems(req, res) {
     );
   }
 }
-
+//TODO: priority
 export async function handleDeliveryDone(req, res) {
   const orderId = parseInt(req.params.orderId);
-  const CACHE_KEY = "seller_ordered_list_" + req.seller.seller_id;
+  const CACHE_KEY = "seller:seller_ordered_list_" + req.seller.seller_id;
   if (!orderId) {
     throw new ApiError(400, "Invalid order id");
   }

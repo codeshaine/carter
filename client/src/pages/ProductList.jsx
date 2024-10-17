@@ -8,56 +8,6 @@ import Loader from "../components/Loader/Loader";
 import axios from "axios";
 
 function ProductList() {
-  // const { nameParam } = useParams();
-  // const [searchParams] = useSearchParams();
-  // const catQuery = searchParams.get("cat") || "";
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const [totalPageNumber, setTotalPageNumber] = useState(1);
-  // const limit = 8;
-  // const catRef = useRef(null);
-  // const lowLimit = useRef(null);
-  // const highLimit = useRef(null);
-  // //filter
-  // const [selectedCategory, setSelectedCategory] = useState(catQuery);
-  // const [priceRange, setPriceRange] = useState({ min: "", max: "" });
-
-  // const params = useMemo(() => {
-  //   return new URLSearchParams({
-  //     page: currentPage,
-  //     limit,
-  //     cat: selectedCategory,
-  //     lb: priceRange.min,
-  //     ub: priceRange.max,
-  //   });
-  // }, [currentPage, selectedCategory, priceRange]);
-
-  // const [products, , productError, productLoading] = useFetch(
-  //   `/api/product/f/${nameParam}?${params}`,
-  //   [nameParam, currentPage, selectedCategory, priceRange]
-  // );
-  // useEffect(() => {
-  //   setTotalPageNumber(Math.ceil(products.tp / limit));
-  // }, [nameParam, products]);
-
-  // function handleApplyFilter() {
-  //   setSelectedCategory(catRef.current.value);
-  //   setPriceRange((prev) => {
-  //     return {
-  //       ...prev,
-  //       min: lowLimit.current.value,
-  //       max: highLimit.current.value,
-  //     };
-  //   });
-  // }
-
-  // const handlePageChange = useCallback((value) => {
-  //   setCurrentPage(value);
-  // }, []);
-  // if (productError) console.log("Error:\nproduct error:\n", productError);
-
-  // if (productLoading) return <Loader />;
-
-  //using git lol
   const { nameParam } = useParams();
   const [searchParams] = useSearchParams();
   const catQuery = searchParams.get("cat") || "";
@@ -70,6 +20,9 @@ function ProductList() {
   //filter
   const [selectedCategory, setSelectedCategory] = useState(catQuery);
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+
+  //fetching data
+  const [fetchData, setFetchData] = useState(false);
 
   const params = useMemo(() => {
     return new URLSearchParams({
@@ -93,19 +46,18 @@ function ProductList() {
       setProductLoading(false);
     }
   }
-  //for initial page fetch
+
   useEffect(() => {
     (async () => {
       await getData();
+      setFetchData(false);
     })();
-  }, []);
+  }, [fetchData]);
 
   //for page change
   useEffect(() => {
-    (async () => {
-      await getData();
-    })();
-  }, [currentPage]);
+    setFetchData(true);
+  }, [currentPage, nameParam, searchParams]);
 
   //setting page limit
   useEffect(() => {
@@ -114,14 +66,14 @@ function ProductList() {
 
   //fetching data when applying and clearing filter
   async function handleApplyFilter() {
-    await getData();
+    setFetchData(true);
   }
 
   async function handleClearFilter() {
     setSelectedCategory("");
     setPriceRange({ min: "", max: "" });
     setCurrentPage(1);
-    await getData();
+    setFetchData(true);
   }
 
   const handlePageChange = useCallback((value) => {
@@ -220,7 +172,12 @@ function ProductList() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">
             Search Results for &quot;
-            <span className="text-gray-600">{nameParam}</span>&quot;
+            <span className="text-gray-600">
+              {searchParams.get("cat")
+                ? searchParams.get("cat")
+                : "" + "" + nameParam}
+            </span>
+            &quot;
           </h1>
         </div>
         {products.pl?.length > 0 ? (

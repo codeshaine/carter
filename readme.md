@@ -45,38 +45,22 @@
 - Strengthened frontend skills with React and custom hooks.
 - Improved testing techniques with Jest and Supertest.
 
-## TODO
+<!-- ## TODO
 
-- Payment gateway integration
+- Bug : handle state when clikcing filters :: ✔️ (check)
+- Bug: seller product list cahcing isssue check the remaing cahcing issue
+- Bug: delete review button is displaying for every user
+- Improvements: write review should be moved recommendation section showed in product page instead
+- Feature: add the discount
+- Feature: Payment gateway integration
+
+- Product update page
+- push notification through web sock (optional)
+- Frontend Design changes-
+- mulitple product upload
 - Lazy loading, useMemo, useCallback,React.memo
-- Unit and Integration test
+- Unit and Integration test (optional)
 
-<!-- - meesage to seller and user mail on purchase and cancel product delivery
-- email sendign when user pruchase somehign and showing the pruchased item in the seller dashboard
+- have to use lazy loading later for performance optimiZation : code splitting
 
-!IMP
--- the image that is being uploaded are not managed properly
--- need to make some modification to some queries like removing some uncessary fields
--- time of the cache
--- REFACTOR THE QUERY COLMUN DATA
--- meesage to seller mail on purchase and cancel product delivery
--- Need to fix the redis time on differnt routes
-
-
-have to use lazy loading later for performance optimiZation : code splitting
-
----
-
-TODO:8/9/2024 (fb)
-
--loader
--integrate payment gateway
-
-- minor bug in the cart page while deleting state is not being updated
-
-- lazy and infinite scrolling
-- react hooks for further opimization
-
----
-
- -->
+-->

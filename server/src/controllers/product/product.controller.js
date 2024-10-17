@@ -5,7 +5,7 @@ import { ApiError, ApiResponse } from "../../services/index.js";
 //gets top 10 new products
 export async function handleGetNewProducts(req, res) {
   const limit = parseInt(req.query?.limit) || 10;
-  const CACHE_KEY = "get_top_" + limit;
+  const CACHE_KEY = "product:get_top_" + limit;
   const CACHE_EXPIRATION = 60 * 60; // 1 hour in seconds
   const cachedProductData = await redisClient.get(CACHE_KEY);
   if (cachedProductData) {
@@ -48,7 +48,7 @@ export async function handleGetProductsWithFilter(req, res) {
   const category = req.query.cat;
 
   const CACHE_KEY =
-    "product_" +
+    "product:product_" +
     productname +
     "_" +
     lower_bound +
@@ -130,9 +130,7 @@ export async function handleGetProductsWithFilter(req, res) {
         product_images: true,
       },
     });
-    if (prodctsList.length === 0) {
-      throw new ApiError(400, "There are no products");
-    }
+
     redisClient.setex(
       CACHE_KEY,
       CACHE_EXPIRATION,
@@ -232,7 +230,7 @@ export async function handleGetOneProduct(req, res) {
 
 export async function handleGetProductReviews(req, res) {
   const slug = req.params.id;
-  const CACHE_KEY = slug + "_reviews";
+  const CACHE_KEY = "product:review:" + slugId;
   const CACHE_EXIPIRATION = 30;
   const cachedData = await redisClient.get(CACHE_KEY);
   if (cachedData) {
@@ -275,7 +273,7 @@ export async function handleGetProductReviews(req, res) {
 
 export async function handleGetSellerDetails(req, res) {
   const slug = req.params.slugId;
-  const CACHE_KEY = "seller_details_" + slug;
+  const CACHE_KEY = "product:seller_details_" + slug;
   const CACHE_EXIPIRATION = 60;
   if (!slug) {
     throw new ApiError(400, "Prvodide the product id");

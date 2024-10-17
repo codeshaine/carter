@@ -18,7 +18,6 @@ const Navbar = memo(function Navbar() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     navigate("/product-list/" + searchTerm);
-    console.log("Search Term:", searchTerm);
   };
 
   return (

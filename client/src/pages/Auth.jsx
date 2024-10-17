@@ -27,7 +27,6 @@ export default function Auth() {
         email,
         password,
       });
-
       setUser(res.data.data);
       setIsAuthenticated(true);
       toast.success(res.data.message);
