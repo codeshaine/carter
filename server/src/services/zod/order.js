@@ -1,9 +1,10 @@
 import { z } from "zod";
-export function validateBuyNowBody(value) {
+export function validatePurchaseBody(value) {
   const buyNowBodySchema = z.object({
-    slug: z.string().min(1, "Please provide the valid slug"),
+    product_id: z.number().min(0, "provide valid product id"),
+    seller_id: z.number().min(0, "Provide valid seller id"),
     quantity: z.number().min(1, "Quantity should be greater than 0"),
-    userAddress: z.number().min(1, "userAdress should be greater than 0"),
+    price: z.number().min(0, "provide valid price"),
   });
   return buyNowBodySchema.safeParse(value);
 }

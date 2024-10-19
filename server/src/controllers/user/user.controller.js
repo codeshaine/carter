@@ -4,14 +4,15 @@ import {
   ApiResponse,
   validateUpdateUserProfile,
   validateReviewBody,
-  validateBuyNowBody,
   validateAddToCart,
+  validatePurchaseBody,
 } from "../../services/index.js";
 import fs from "fs/promises";
 import redisClient from "../../clients/redisCleint.js";
 import { validateUserAddress } from "../../services/zod/userAddress.js";
 import cloudinary from "../../services/cloudinary/config.js";
 import { urlExtractor } from "../../services/cloudinary/urlExtractor.js";
+import { Prisma } from "@prisma/client";
 
 // ******************managin user profile********************************
 export async function handleGetUserInfo(req, res) {
@@ -338,160 +339,79 @@ export async function handleGetUserAddress(req, res) {
 
 //*********************handling buy and order now feature **************
 
-export async function handleBuyNow(req, res) {
-  const buyNowBody = req.body;
-  const CACHE_KEY = "user:ordered_items:" + req.user.user_id;
-
-  const validate = validateBuyNowBody(buyNowBody);
-  if (!validate.success) {
-    throw new ApiError(400, "Invalid input", validate.error);
-  }
-  try {
-    const product = await prismaClient.products.findFirst({
-      where: {
-        slug: buyNowBody.slug,
-      },
-      select: {
-        product_id: true,
-        price: true,
-        stock: true,
-        seller_id: true,
-        seller: {
-          select: {
-            seller_email: true,
-            user: {
-              select: {
-                user_id: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (product.seller.user.user_id === req.user.user_id) {
-      throw new ApiError(400, "You cant buy your own product");
-    }
-    if (!product) {
-      throw new ApiError(400, "Product not found");
-    }
-    if (product.stock < buyNowBody.quantity) {
-      throw new ApiError(400, "Not enough stock");
-    }
-    const order = await prismaClient.orders.create({
-      data: {
-        user_id: req.user.user_id,
-        product_id: product.product_id,
-        quantity: buyNowBody.quantity,
-        total: product.price * buyNowBody.quantity,
-        user_address_id: buyNowBody.userAddress,
-      },
-    });
-    await prismaClient.products.update({
-      where: {
-        product_id: product.product_id,
-      },
-      data: {
-        stock: product.stock - buyNowBody.quantity,
-      },
-    });
-    //seller ordered list is deleted from cache
-    const CACHE_KEY_2 =
-      "seller:seller_ordered_list:" + product.seller_id + ":*";
-    const key = await redisClient.keys(CACHE_KEY_2);
-    if (key.length > 0) await redisClient.del(key);
-
-    await redisClient.del(CACHE_KEY);
-    res.status(201).json(new ApiResponse(201, "Order created", order));
-  } catch (err) {
-    console.error(err);
-    if (err instanceof ApiError) {
-      throw new ApiError(err.statuscode, err.message, err.stack);
-    }
-
-    console.error(err);
-    throw new ApiError(500, "Error occured while creating order", err.stack);
-  }
-}
-export async function handleOrderNow(req, res) {
+export async function handlePurchaseProduct(req, res) {
   const CACHE_KEY = "user:ordered_items:" + req.user.user_id;
   const userAddress = req.body.userAddress;
-  if (!userAddress) {
-    throw new ApiError(400, "Provide valid user address");
+
+  if (!userAddress) throw new ApiError(400, "Provide valid user address");
+  const productList = req.body.productList;
+
+  if (productList.length === 0) {
+    throw new ApiError(400, "Cart is empty");
   }
+
+  productList.forEach((item) => {
+    const validate = validatePurchaseBody(item);
+    if (!validate.success) {
+      throw new ApiError(400, "invalid type of product body", validate.error);
+    }
+  });
+
+  //TODO just check if the out of stock :raise error if needed put constraint
+
+  let total = 0;
   try {
-    const productList = await prismaClient.cartItems.findMany({
-      where: {
-        cart: {
-          user_id: req.user.user_id,
-        },
-      },
-      include: {
-        product: true,
-      },
+    await prismaClient.$transaction(async (tx) => {
+      await Promise.all(
+        productList.map(async (item) => {
+          total += item.quantity * item.price;
+
+          return tx.orders.create({
+            data: {
+              product_id: item.product_id,
+              user_id: req.user.user_id,
+              quantity: item.quantity,
+              total: item.quantity * item.price,
+              user_address_id: userAddress,
+            },
+          });
+        })
+      );
+      await Promise.all(
+        productList.map(async (item) => {
+          return tx.products.update({
+            where: {
+              product_id: item.product_id,
+            },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
+            },
+          });
+        })
+      );
     });
 
-    if (productList.length === 0) {
-      throw new ApiError(400, "Cart is empty");
-    }
-    let total = 0;
-    const orders = await Promise.all(
-      productList.forEach(async (item) => {
-        total += item.quantity * item.product.price;
-        //deleting cached ordered items
-        const CACHE_KEY_2 =
-          "seller:seller_ordered_list:" + item.product.seller_id + ":*";
-        const key = await redisClient.keys(CACHE_KEY_2);
-        if (key.length > 0) await redisClient.del(key);
-
-        return prismaClient.orders.create({
-          data: {
-            product_id: item.product_id,
-            user_id: req.user.user_id,
-            quantity: item.quantity,
-            total: item.quantity * item.product.price,
-            user_address_id: userAddress,
-          },
-        });
-      })
-    );
-    //TODO just check if the out of stock :raise error if needed
-    await Promise.all(
-      productList.map(async (item) => {
-        return prismaClient.products.update({
-          where: {
-            product_id: item.product_id,
-          },
-          data: {
-            stock: item.product.stock - item.quantity,
-          },
-        });
-      })
-    );
-
-    if (!orders) {
-      throw new ApiError(500, "Internal Server Error, Transaction failed");
-    }
-    await prismaClient.cartItems.deleteMany({
-      where: {
-        cart: {
-          user_id: req.user.user_id,
-        },
-      },
+    //deleting necessary cache
+    productList.forEach(async (item) => {
+      const CACHE_KEY_2 = "seller:seller_ordered_list:" + item.seller_id + ":*";
+      const key = await redisClient.keys(CACHE_KEY_2);
+      if (key.length > 0) await redisClient.del(key);
     });
-    const resData = {
-      totalMoney: total,
-    };
-
-    //deleting redis cache
     await redisClient.del(CACHE_KEY);
 
-    res
-      .status(200)
-      .json(new ApiResponse(200, "Items purchased,cart go emptied", resData));
-    console.log("order now route:", orders);
+    res.status(200).json(new ApiResponse(200, "Items purchased", { total }));
   } catch (err) {
     console.error(err);
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === "P2025") {
+        console.error("Transaction error: Record not found");
+        throw new ApiError(400, "Record not found during transaction", err);
+      } else {
+        throw new ApiError(500, "Transaction failed", err);
+      }
+    }
     if (err instanceof ApiError) {
       throw new ApiError(err.statuscode, err.message, err.stack);
     }
@@ -616,11 +536,12 @@ export async function handleGetCartItems(req, res) {
       select: {
         items: {
           select: {
-            cart_item_id: true,
             quantity: true,
             product: {
               select: {
+                product_id: true,
                 name: true,
+                seller_id: true,
                 slug: true,
                 product_images: true,
                 price: true,
@@ -747,9 +668,7 @@ export async function handleDeleteOrder(req, res) {
       .json(new ApiResponse(200, "Deleted Successfully", deltedOrder));
   } catch (err) {
     console.error(err);
-    // if(){
 
-    // }
     if (err instanceof ApiError) {
       throw new ApiError(err.statuscode, err.message, err.stack);
     }
@@ -795,3 +714,166 @@ export async function checkUser(req, res) {
     throw new ApiError(500, "Error occured while cancelling orders", err);
   }
 }
+
+//previous version api code
+// export async function handleBuyNow(req, res) {
+//   const buyNowBody = req.body;
+//   const CACHE_KEY = "user:ordered_items:" + req.user.user_id;
+
+//   const validate = validatePurchaseBody(buyNowBody);
+//   if (!validate.success) {
+//     throw new ApiError(400, "Invalid input", validate.error);
+//   }
+//   try {
+//     const product = await prismaClient.products.findFirst({
+//       where: {
+//         slug: buyNowBody.slug,
+//       },
+//       select: {
+//         product_id: true,
+//         price: true,
+//         stock: true,
+//         seller_id: true,
+//         seller: {
+//           select: {
+//             seller_email: true,
+//             user: {
+//               select: {
+//                 user_id: true,
+//               },
+//             },
+//           },
+//         },
+//       },
+//     });
+
+//     if (product.seller.user.user_id === req.user.user_id) {
+//       throw new ApiError(400, "You cant buy your own product");
+//     }
+//     if (!product) {
+//       throw new ApiError(400, "Product not found");
+//     }
+//     if (product.stock < buyNowBody.quantity) {
+//       throw new ApiError(400, "Not enough stock");
+//     }
+//     const order = await prismaClient.orders.create({
+//       data: {
+//         user_id: req.user.user_id,
+//         product_id: product.product_id,
+//         quantity: buyNowBody.quantity,
+//         total: product.price * buyNowBody.quantity,
+//         user_address_id: buyNowBody.userAddress,
+//       },
+//     });
+//     await prismaClient.products.update({
+//       where: {
+//         product_id: product.product_id,
+//       },
+//       data: {
+//         stock: product.stock - buyNowBody.quantity,
+//       },
+//     });
+//     //seller ordered list is deleted from cache
+//     const CACHE_KEY_2 =
+//       "seller:seller_ordered_list:" + product.seller_id + ":*";
+//     const key = await redisClient.keys(CACHE_KEY_2);
+//     if (key.length > 0) await redisClient.del(key);
+
+//     await redisClient.del(CACHE_KEY);
+//     res.status(201).json(new ApiResponse(201, "Order created", order));
+//   } catch (err) {
+//     console.error(err);
+//     if (err instanceof ApiError) {
+//       throw new ApiError(err.statuscode, err.message, err.stack);
+//     }
+
+//     console.error(err);
+//     throw new ApiError(500, "Error occured while creating order", err.stack);
+//   }
+// }
+
+// export async function handleOrderNow(req, res) {
+//   const CACHE_KEY = "user:ordered_items:" + req.user.user_id;
+//   const userAddress = req.body.userAddress;
+//   if (!userAddress) {
+//     throw new ApiError(400, "Provide valid user address");
+//   }
+//   try {
+//     const productList = await prismaClient.cartItems.findMany({
+//       where: {
+//         cart: {
+//           user_id: req.user.user_id,
+//         },
+//       },
+//       include: {
+//         product: true,
+//       },
+//     });
+
+//     if (productList.length === 0) {
+//       throw new ApiError(400, "Cart is empty");
+//     }
+//     let total = 0;
+//     const orders = await Promise.all(
+//       productList.map(async (item) => {
+//         total += item.quantity * item.product.price;
+//         //deleting cached ordered items
+//         const CACHE_KEY_2 =
+//           "seller:seller_ordered_list:" + item.product.seller_id + ":*";
+//         const key = await redisClient.keys(CACHE_KEY_2);
+//         if (key.length > 0) await redisClient.del(key);
+
+//         return prismaClient.orders.create({
+//           data: {
+//             product_id: item.product_id,
+//             user_id: req.user.user_id,
+//             quantity: item.quantity,
+//             total: item.quantity * item.product.price,
+//             user_address_id: userAddress,
+//           },
+//         });
+//       })
+//     );
+//     //TODO just check if the out of stock :raise error if needed
+//     await Promise.all(
+//       productList.map(async (item) => {
+//         return prismaClient.products.update({
+//           where: {
+//             product_id: item.product_id,
+//           },
+//           data: {
+//             stock: item.product.stock - item.quantity,
+//           },
+//         });
+//       })
+//     );
+
+//     if (!orders) {
+//       throw new ApiError(500, "Internal Server Error, Transaction failed");
+//     }
+//     await prismaClient.cartItems.deleteMany({
+//       where: {
+//         cart: {
+//           user_id: req.user.user_id,
+//         },
+//       },
+//     });
+//     const resData = {
+//       totalMoney: total,
+//     };
+
+//     //deleting redis cache
+//     await redisClient.del(CACHE_KEY);
+
+//     res
+//       .status(200)
+//       .json(new ApiResponse(200, "Items purchased,cart go emptied", resData));
+//     console.log("order now route:", orders);
+//   } catch (err) {
+//     console.error(err);
+//     if (err instanceof ApiError) {
+//       throw new ApiError(err.statuscode, err.message, err.stack);
+//     }
+//     throw new ApiError(500, "Failed to make transaction,purchase failed", err);
+//   }
+// }

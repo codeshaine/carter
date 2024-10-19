@@ -68,7 +68,7 @@ model Products {
   created_at     DateTime        @default(now())
   updated_at     DateTime        @updatedAt
   slug           String          @unique
-  stock          Int
+  stock          Int 
   category       String
   cart           CartItems[]
   order          Orders[]

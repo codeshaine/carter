@@ -21,12 +21,22 @@ function Cart() {
     [navigate]
   );
 
-  console.log(cartItems);
   const orderNow = async () => {
+    let productList = [];
+    cartItems.forEach((item) => {
+      productList.push({
+        product_id: item.product.product_id,
+        seller_id: item.product.seller_id,
+        quantity: item.quantity,
+        price: item.product.price,
+      });
+    });
     try {
-      const res = await axios.post("/api/user/product/cart/order-now", {
+      const res = await axios.post("/api/user/product/purchase-now", {
+        productList: productList,
         userAddress: chosenAddress,
       });
+      console.log(res);
       toast.success(res.data.message);
     } catch (err) {
       toast.error(err.response.data.message);

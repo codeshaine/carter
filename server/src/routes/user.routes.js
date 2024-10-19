@@ -1,5 +1,5 @@
 import express from "express";
-import { ApiResponse, handler } from "../services/index.js";
+import { handler } from "../services/index.js";
 import {
   signIn,
   signUp,
@@ -11,7 +11,6 @@ import {
   checkUser,
   handldeAddUserAddress,
   handleAddToCart,
-  handleBuyNow,
   handleDeleteFromCart,
   handleDeleteOrder,
   handleDeleteReview,
@@ -20,7 +19,7 @@ import {
   handleGetOrders,
   handleGetUserAddress,
   handleGetUserInfo,
-  handleOrderNow,
+  handlePurchaseProduct,
   handlePushReview,
   handleUpdateUser,
 } from "../controllers/user/user.controller.js";
@@ -53,8 +52,31 @@ userRouter.delete(
 );
 
 //************handling product pruchase ****************
-userRouter.post("/product/buy-now", isAuthenticated, handler(handleBuyNow));
+// userRouter.post("/product/buy-now", isAuthenticated, handler(handleBuyNow));
 
+// userRouter.post(
+//   "/product/cart/order-now",
+//   isAuthenticated,
+//   handler(handleOrderNow)
+// );
+userRouter.post(
+  "/product/purchase-now",
+  isAuthenticated,
+  handler(handlePurchaseProduct)
+);
+userRouter.delete(
+  "/product/order/cancel/:orderId",
+  isAuthenticated,
+  handler(handleDeleteOrder)
+);
+
+userRouter.get(
+  "/product/ordered-items",
+  isAuthenticated,
+  handler(handleGetOrders)
+);
+
+//*************handling cart ******************************
 userRouter.post(
   "/product/add-to-cart",
   isAuthenticated,
@@ -70,23 +92,6 @@ userRouter.delete(
   "/product/my-cart/:itemId",
   isAuthenticated,
   handler(handleDeleteFromCart)
-);
-
-userRouter.post(
-  "/product/cart/order-now",
-  isAuthenticated,
-  handler(handleOrderNow)
-);
-
-userRouter.get(
-  "/product/ordered-items",
-  isAuthenticated,
-  handler(handleGetOrders)
-);
-userRouter.delete(
-  "/product/order/cancel/:orderId",
-  isAuthenticated,
-  handler(handleDeleteOrder)
 );
 
 //*************managing user addresses ***************

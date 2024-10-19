@@ -23,9 +23,15 @@ function BuyNow() {
 
   const handleBuyNow = async () => {
     try {
-      await axios.post("/api/user/product/buy-now", {
-        slug: slugId,
-        quantity,
+      await axios.post("/api/user/product/purchase-now", {
+        productList: [
+          {
+            product_id: productDetails.product_id,
+            seller_id: productDetails.seller_id,
+            quantity: quantity,
+            price: productDetails.price,
+          },
+        ],
         userAddress: chosenAddress,
       });
       toast.success("Product Purchased Successfully");
