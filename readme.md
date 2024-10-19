@@ -47,15 +47,17 @@
 
 <!-- ## TODO
 
-- Feature: add the discount
+- Improve Unify the purchase route
 - Feature: Payment gateway integration
 
 **improvemetns**
 - product list page have mutliple state updating issue uncessary api call is made when the component is mounted
 
+
+- Feature: add the discount
 - Improvements: write review should be moved recommendation section showed in product page instead
 - Product update page
-- push notification through web sock (optional)
+- Feature:push notification through web sock (optional)
 - Frontend Design changes-
 - mulitple product upload
 - Lazy loading, useMemo, useCallback,React.memo

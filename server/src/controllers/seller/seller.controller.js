@@ -177,7 +177,8 @@ export async function handleUploadNewProduct(req, res) {
     }
 
     const keys = await redisClient.keys(CACHE_KEY);
-    await redisClient.del(keys);
+    if (keys.length > 0) await redisClient.del(keys);
+
     return res
       .status(201)
       .json(new ApiResponse(201, "Product createrd", newProduct));
@@ -245,7 +246,8 @@ export async function handleUpdateProduct(req, res) {
     });
 
     const keys = await redisClient.keys(CACHE_KEY);
-    await redisClient.del(keys);
+    if (keys.length > 0) await redisClient.del(keys);
+
     res
       .status(200)
       .json(
@@ -320,7 +322,7 @@ export async function handleDeleteProduct(req, res) {
       },
     });
     const keys = await redisClient.keys(CACHE_KEY);
-    await redisClient.del(keys);
+    if (keys.length > 0) await redisClient.del(keys);
 
     res
       .status(200)
@@ -519,7 +521,7 @@ export async function handleDeliveryDone(req, res) {
       },
     });
     const keys = await redisClient.keys(CACHE_KEY);
-    await redisClient.del(keys);
+    if (keys.length > 0) await redisClient.del(keys);
     res
       .status(200)
       .json(new ApiResponse(200, "Done with delivery", orderedItem));

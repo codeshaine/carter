@@ -396,8 +396,11 @@ export async function handleBuyNow(req, res) {
       },
     });
     //seller ordered list is deleted from cache
-    const CACHE_KEY_2 = "seller:seller_ordered_list_" + product.seller_id;
-    await redisClient.del(CACHE_KEY_2);
+    const CACHE_KEY_2 =
+      "seller:seller_ordered_list:" + product.seller_id + ":*";
+    const key = await redisClient.keys(CACHE_KEY_2);
+    if (key.length > 0) await redisClient.del(key);
+
     await redisClient.del(CACHE_KEY);
     res.status(201).json(new ApiResponse(201, "Order created", order));
   } catch (err) {
@@ -436,8 +439,10 @@ export async function handleOrderNow(req, res) {
       productList.forEach(async (item) => {
         total += item.quantity * item.product.price;
         //deleting cached ordered items
-        const CACHE_KEY_2 = "seller_ordered_list_" + item.product.seller_id;
-        await redisClient.del(CACHE_KEY_2);
+        const CACHE_KEY_2 =
+          "seller:seller_ordered_list:" + item.product.seller_id + ":*";
+        const key = await redisClient.keys(CACHE_KEY_2);
+        if (key.length > 0) await redisClient.del(key);
 
         return prismaClient.orders.create({
           data: {
@@ -731,10 +736,11 @@ export async function handleDeleteOrder(req, res) {
 
     //deleting redis cache for ordered items of seller
     const CACHE_KEY_1 = "user:ordered_items:" + req.user.user_id;
-    const CACHE_KEY_2 = "seller:seller_ordered_list:" + req.seller.seller_id;
-
+    const CACHE_KEY_2 =
+      "seller:seller_ordered_list:" + order.product.seller_id + ":*";
+    const key = await redisClient.keys(CACHE_KEY_2);
+    if (key.length > 0) await redisClient.del(key);
     await redisClient.del(CACHE_KEY_1);
-    await redisClient.del(CACHE_KEY_2);
 
     res
       .status(200)
