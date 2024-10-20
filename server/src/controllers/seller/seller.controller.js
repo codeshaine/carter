@@ -451,7 +451,8 @@ export async function handleOrderedSellerItems(req, res) {
 
 export async function handleDeliveryDone(req, res, next) {
   const orderId = parseInt(req.params.orderId);
-  const CACHE_KEY = "seller:seller_ordered_list:" + req.seller.seller_id + ":*";
+  const CACHE_KEY_1 =
+    "seller:seller_ordered_list:" + req.seller.seller_id + ":*";
 
   if (!orderId) {
     throw new ApiError(400, "Invalid order id");
@@ -465,8 +466,11 @@ export async function handleDeliveryDone(req, res, next) {
         delivery_status: true,
       },
     });
-    const keys = await redisClient.keys(CACHE_KEY);
+
+    const keys = await redisClient.keys(CACHE_KEY_1);
     if (keys.length > 0) await redisClient.del(keys);
+    const CACHE_KEY_2 = "user:ordered_items:" + orderedItem.user_id;
+    await redisClient.del(CACHE_KEY_2);
     res
       .status(200)
       .json(new ApiResponse(200, "Done with delivery", orderedItem));

@@ -431,7 +431,6 @@ export async function handleAddToCart(req, res) {
 export async function handleDeleteFromCart(req, res, next) {
   const cartItemId = parseInt(req.params.itemId);
   const CACHE_KEY = "user:cart_items:" + req.user.user_id;
-
   try {
     await prismaClient.cartItems.delete({
       where: {
@@ -467,6 +466,7 @@ export async function handleGetCartItems(req, res) {
     select: {
       items: {
         select: {
+          cart_item_id: true,
           quantity: true,
           product: {
             select: {
