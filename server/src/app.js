@@ -68,7 +68,7 @@ app.use("/api/product", productRoutes);
 
 //**************global error handler*******************/
 app.use((err, req, res, next) => {
-  // console.error("Error occured:", err);
+  console.error("Error occured:", err);
   if (err instanceof ApiError) {
     return res
       .status(err.statuscode)

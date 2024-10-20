@@ -8,7 +8,7 @@ import {
   verifyPassword,
 } from "../../services/index.js";
 
-async function signUp(req, res) {
+async function signUp(req, res, next) {
   const validate = validateSignUpBody(req.body);
   if (!validate.success) {
     throw new ApiError(400, "invalid user data", validate.error);
@@ -30,10 +30,8 @@ async function signUp(req, res) {
   } catch (err) {
     if (err.code === "P2002" && err.meta && err.meta.target.includes("email")) {
       throw new ApiError(409, "email already taken", err);
-    } else {
-      // Handle other errors
-      throw new ApiError(500, "Error occurred while creating user", err);
     }
+    next(err);
   }
 }
 
@@ -44,22 +42,18 @@ async function signIn(req, res) {
   }
   const { email, password } = req.body;
   let user;
-  try {
-    user = await prismaClient.users.findUnique({
-      where: {
-        email,
-      },
-      include: {
-        sellers: {
-          select: {
-            seller_name: true,
-          },
+  user = await prismaClient.users.findUnique({
+    where: {
+      email,
+    },
+    include: {
+      sellers: {
+        select: {
+          seller_name: true,
         },
       },
-    });
-  } catch (err) {
-    throw new ApiError(500, "Error occured during user login query", err);
-  }
+    },
+  });
   if (!user) {
     throw new ApiError(400, "user not exist");
   }
@@ -75,14 +69,8 @@ async function signIn(req, res) {
 }
 
 async function signOut(req, res) {
-  try {
-    !req.user && req.session.destroy();
-    req.user && req.logout((err) => console.log(err));
-    return res
-      .status(200)
-      .json(new ApiResponse(200, "logged out successfully"));
-  } catch (err) {
-    throw new ApiError(500, "Erroc occured during logout", err.stack);
-  }
+  !req.user && req.session.destroy();
+  req.user && req.logout((err) => console.log(err));
+  return res.status(200).json(new ApiResponse(200, "logged out successfully"));
 }
 export { signUp, signIn, signOut };

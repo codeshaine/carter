@@ -20,7 +20,6 @@ export function validateProductBody(value) {
   return productSchema.safeParse(value);
 }
 
-//TODO havent wrote the unit test
 export function validateUpdateProductBody(value) {
   const updateProductSchema = z.object({
     name: z.string().min(1, "Product name is required").optional(),

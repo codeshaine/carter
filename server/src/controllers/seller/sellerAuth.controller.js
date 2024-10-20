@@ -21,7 +21,6 @@ export async function handleSellerSignup(req, res) {
 
   try {
     await prismaClient.$transaction(async (tx) => {
-      // Code running in a transaction...
       const seller = await tx.sellers.create({
         data: {
           seller_name: sellerData.seller_name,
@@ -51,7 +50,5 @@ export async function handleSellerSignup(req, res) {
   } catch (err) {
     console.log("Prisma errro in seller auth", err);
     throw new ApiError(500, err.message || "seller not created", err.stack);
-  } finally {
-    await prismaClient.$disconnect();
   }
 }
