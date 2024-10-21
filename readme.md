@@ -24,10 +24,10 @@
 - **Prisma ORM**: Used for efficient database queries with PostgreSQL.
 - **Redis Cache**: Implemented caching for improved performance.
 - **Passport.js**: Integrated OAuth for secure login and authorization.
-- **Unit Testing**: Comprehensive testing with Jest and Supertest.
 - **File Upload**: Support for image/file uploads to third-party cloud storage.
 - **Zod**: For type validation and error handling.
 - **Password Encryption**: Ensured user data security by encrypting passwords.
+- **Stripe Payment Integration** : User can make Online Payment via Card
 
 ## Frontend
 
@@ -36,6 +36,7 @@
 - **React Router**: For seamless navigation between different pages.
 - **Global State Management**: Managed application state using React Context.
 - **Custom Hooks**: Leveraged hooks for cleaner and more refactored code.
+- **Stripe Payment Integration** : Used stripe readct component for the stripe integration
 
 ## Learning Outcomes
 
@@ -43,7 +44,7 @@
 - Implemented caching and optimized performance using Redis.
 - Integrated OAuth with Passport.js.
 - Strengthened frontend skills with React and custom hooks.
-- Improved testing techniques with Jest and Supertest.
+- Learnt Payment Gateway integration and How to deal with online payment
 
 <!-- ## TODO
 
