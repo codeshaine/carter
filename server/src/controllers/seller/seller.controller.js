@@ -464,6 +464,7 @@ export async function handleDeliveryDone(req, res, next) {
       },
       data: {
         delivery_status: true,
+        payment_status: true,
       },
     });
 

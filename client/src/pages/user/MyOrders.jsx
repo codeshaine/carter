@@ -77,6 +77,14 @@ function MyOrders() {
                       Delivery Status:{" "}
                       {item.delivery_status ? "Delivered" : "Pending"}
                     </p>
+                    <p
+                      className={`text-base mt-2 ${
+                        item.payment_status ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      Payment Status:{" "}
+                      {item.payment_status ? "Paid" : "Not Paid"}
+                    </p>
                     <p className="text-base text-gray-700 mt-2">
                       Ordered At: {new Date(item.created_at).toLocaleString()}
                     </p>

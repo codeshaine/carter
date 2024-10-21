@@ -36,7 +36,7 @@ function ManageOrderedProducts() {
           orderedItems: prevItems.orderedItems
             ? prevItems.orderedItems.map((item) =>
                 item.order_id === orderId
-                  ? { ...item, delivery_status: true }
+                  ? { ...item, delivery_status: true, payment_status: true }
                   : item
               )
             : [],
@@ -98,6 +98,25 @@ function ManageOrderedProducts() {
                         {item.delivery_status ? "Delivered" : "Pending"}
                       </span>
                     </p>
+
+                    <p className="text-sm text-gray-600">
+                      Payment Status:{" "}
+                      <span
+                        className={`font-medium ${
+                          item.payment_status
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {item.payment_status ? "Paid" : "Pending"}
+                      </span>
+                    </p>
+
+                    {item.transaction_id && (
+                      <p className="text-sm text-gray-600">
+                        Tansaction ID: {item.transaction_id}
+                      </p>
+                    )}
                     <p className="text-sm text-gray-600">
                       Ordered At: {new Date(item.created_at).toLocaleString()}
                     </p>

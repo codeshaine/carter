@@ -68,7 +68,7 @@ const PaymentCard = ({ productList, chosenAddress, setPaymentLoader }) => {
           productList: productList,
           userAddress: chosenAddress,
           transactionId: transactionId,
-          payment_status: true,
+          paymentStatus: true,
         });
         await axios.post(`/api/user/capture-payment`, { transactionId });
         toast.success("Payment successful and product purchased!");

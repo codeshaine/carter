@@ -296,6 +296,7 @@ export async function handlePurchaseProduct(req, res, next) {
   const paymentStatus = req.body.paymentStatus || false;
   const transactionId = req.body.transactionId || "";
 
+  console.log({ paymentStatus, transactionId });
   if (productList.length === 0) {
     throw new ApiError(400, "give at least onep product");
   }
@@ -538,6 +539,7 @@ export async function handleGetOrders(req, res) {
     },
     select: {
       order_id: true,
+
       product: {
         select: {
           slug: true,
@@ -553,6 +555,7 @@ export async function handleGetOrders(req, res) {
       quantity: true,
       total: true,
       delivery_status: true,
+      payment_status: true,
       created_at: true,
       // product: true,
     },
