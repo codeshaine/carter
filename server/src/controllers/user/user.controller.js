@@ -13,6 +13,7 @@ import { validateUserAddress } from "../../services/zod/userAddress.js";
 import cloudinary from "../../services/cloudinary/config.js";
 import { urlExtractor } from "../../services/cloudinary/urlExtractor.js";
 import { Prisma } from "@prisma/client";
+import { threadId } from "worker_threads";
 
 // ******************managin user profile********************************
 export async function handleGetUserInfo(req, res) {
@@ -97,7 +98,7 @@ export async function handleUpdateUser(req, res) {
   });
 
   //deleting previous user profile
-  if (updatedUser && previous.profile_url) {
+  if (updatedUser && previous.profile_url && req.file) {
     const publicId = urlExtractor(previous.profile_url);
     const result = await cloudinary.uploader.destroy(publicId);
     console.log(result);
@@ -292,9 +293,11 @@ export async function handlePurchaseProduct(req, res, next) {
 
   if (!userAddress) throw new ApiError(400, "Provide valid user address");
   const productList = req.body.productList;
+  const paymentStatus = req.body.paymentStatus || false;
+  const transactionId = req.body.transactionId || "";
 
   if (productList.length === 0) {
-    throw new ApiError(400, "Cart is empty");
+    throw new ApiError(400, "give at least onep product");
   }
 
   productList.forEach((item) => {
@@ -304,6 +307,28 @@ export async function handlePurchaseProduct(req, res, next) {
     }
   });
 
+  const sellerDetails = await prismaClient.users.findFirst({
+    where: {
+      user_id: req.user.user_id,
+    },
+    select: {
+      isSeller: true,
+      sellers: {
+        select: {
+          seller_id: true,
+        },
+      },
+    },
+  });
+  let mySellerId = null;
+  if (sellerDetails.isSeller) {
+    mySellerId = sellerDetails.sellers.seller_id;
+    productList.forEach((item) => {
+      if (item.seller_id == mySellerId) {
+        throw new ApiError(400, "Please remove the Product that you own");
+      }
+    });
+  }
   //TODO just check if the out of stock :raise error if needed put constraint
 
   let total = 0;
@@ -320,6 +345,8 @@ export async function handlePurchaseProduct(req, res, next) {
               quantity: item.quantity,
               total: item.quantity * item.price,
               user_address_id: userAddress,
+              payment_status: paymentStatus,
+              transaction_id: transactionId,
             },
           });
         })

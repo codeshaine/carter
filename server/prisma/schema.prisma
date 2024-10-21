@@ -108,6 +108,8 @@ model Orders {
   user_id         Int
   total           Int
   created_at      DateTime      @default(now())
+  payment_status  Boolean       @default(false)
+ transaction_id   String?   
   delivery_status Boolean       @default(false)
   updated_at      DateTime      @updatedAt
   quantity        Int

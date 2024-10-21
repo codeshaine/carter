@@ -1,15 +1,18 @@
-import axios from "axios";
-import { useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import { useEffect, useState } from "react";
+import { Toaster } from "react-hot-toast";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import { useFetch } from "../../hooks/useFetch";
+import PaymentCard from "../../components/PaymentCard/PaymentCard";
+import Loader from "../../components/Loader/Loader";
+import SubLoader from "../../components/Loader/SubLoader";
 
 function BuyNow() {
   const { slugId, qty } = useParams();
   const [quantity, setQuantity] = useState(parseInt(qty));
-  const [chosenAddress, setChoosenAddress] = useState(null);
+  const [chosenAddress, setChoosenAddress] = useState(0);
+  const [paymentLoader, setPaymentLoader] = useState(false);
   const navigate = useNavigate();
 
   const [productDetails, , productError, productLoading] = useFetch(
@@ -21,30 +24,22 @@ function BuyNow() {
     [navigate, slugId]
   );
 
-  const handleBuyNow = async () => {
-    try {
-      await axios.post("/api/user/product/purchase-now", {
-        productList: [
-          {
-            product_id: productDetails.product_id,
-            seller_id: productDetails.seller_id,
-            quantity: quantity,
-            price: productDetails.price,
-          },
-        ],
-        userAddress: chosenAddress,
-      });
-      toast.success("Product Purchased Successfully");
-    } catch (err) {
-      toast.error(err.response.data.message + " Provide a valid address");
-    }
-  };
+  const [productList, setProductList] = useState([]);
+  useEffect(() => {
+    setProductList([
+      {
+        product_id: productDetails.product_id,
+        seller_id: productDetails.seller_id,
+        quantity: quantity,
+        price: productDetails.price,
+      },
+    ]);
+  }, [productDetails, quantity]);
 
   const handleAddressChange = (addressId) => {
     setChoosenAddress(addressId);
   };
 
-  //loggin fetching error just in case
   if (productError || addressError)
     console.log(
       "Error:\nproduct error:",
@@ -53,15 +48,20 @@ function BuyNow() {
       addressError
     );
 
-  if (productLoading || addressLoading)
-    return <div className="text-center py-6 text-slate-600">Loading...</div>;
+  if (productLoading || addressLoading) return <Loader />;
 
   return (
     <>
+      {paymentLoader && (
+        <div className="fixed z-50">
+          <SubLoader />
+        </div>
+      )}
       <Navbar />
       <Toaster />
       <div className="my-4 max-w-4xl mx-auto p-6 bg-gray-100">
         <h1 className="text-4xl font-extrabold mb-8 text-slate-900">Buy Now</h1>
+        {/* product detail */}
         <div className="bg-white shadow-md rounded-lg overflow-hidden mb-8">
           {productDetails.product_images?.length > 0 && (
             <img
@@ -89,6 +89,7 @@ function BuyNow() {
           </div>
         </div>
         <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+          {/* quanity */}
           <p className="text-xl font-medium mb-4">Quantity:</p>
           <div className="flex items-center gap-4">
             <button
@@ -107,14 +108,9 @@ function BuyNow() {
               +
             </button>
           </div>
-          <button
-            onClick={handleBuyNow}
-            className="mt-6 text-xl bg-green-600 text-white px-8 py-3 rounded-lg shadow-lg hover:bg-green-700"
-          >
-            Buy Now
-          </button>
         </div>
-        <div className="bg-white shadow-md rounded-lg p-6">
+        {/* delivery addresss */}
+        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
           <h2 className="text-2xl font-semibold mb-6 text-slate-900">
             Delivery Addresses
           </h2>
@@ -148,7 +144,7 @@ function BuyNow() {
                   </p>
                 </div>
               ))}
-              <Link to="/manage-addresses">
+              <Link to="/user/manage-addresses">
                 <button className="mt-4 text-slate-600 hover:text-slate-800 underline">
                   Manage Addresses
                 </button>
@@ -167,6 +163,11 @@ function BuyNow() {
             </div>
           )}
         </div>
+        <PaymentCard
+          productList={productList}
+          chosenAddress={chosenAddress}
+          setPaymentLoader={setPaymentLoader}
+        />
       </div>
       <Footer />
     </>

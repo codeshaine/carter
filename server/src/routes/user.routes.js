@@ -24,6 +24,11 @@ import {
   handleUpdateUser,
 } from "../controllers/user/user.controller.js";
 import { upload } from "../services/multer/storage.js";
+import {
+  cancelPayment,
+  capturePayment,
+  createPaymentIntent,
+} from "../controllers/user/payment.controller.js";
 const userRouter = express.Router();
 
 userRouter.get("/", isAuthenticated, handler(handleGetUserInfo));
@@ -76,6 +81,15 @@ userRouter.get(
   handler(handleGetOrders)
 );
 
+//*************handling payment ******************************
+userRouter.post(
+  "/create-payment-intent",
+  isAuthenticated,
+  handler(createPaymentIntent)
+);
+
+userRouter.post("/capture-payment", isAuthenticated, handler(capturePayment));
+userRouter.post("/cancel-payment", isAuthenticated, handler(cancelPayment));
 //*************handling cart ******************************
 userRouter.post(
   "/product/add-to-cart",

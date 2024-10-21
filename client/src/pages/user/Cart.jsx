@@ -1,15 +1,19 @@
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useNavigate, Link } from "react-router-dom";
 import Footer from "../../components/Footer/Footer";
 import Navbar from "../../components/Navbar/Navbar";
 import { useFetch } from "../../hooks/useFetch";
 import Loader from "../../components/Loader/Loader";
+import SubLoader from "../../components/Loader/SubLoader";
+import PaymentCard from "../../components/PaymentCard/PaymentCard";
 
 function Cart() {
-  const [chosenAddress, setChoosenAddress] = useState(null);
+  const [paymentLoader, setPaymentLoader] = useState(false);
+  const [chosenAddress, setChoosenAddress] = useState(0);
   const navigate = useNavigate();
+  const [productList, setProductList] = useState([]);
 
   const [cartItems, setCartItems, cartError, cartLoading] = useFetch(
     "/api/user/product/my-cart",
@@ -21,27 +25,18 @@ function Cart() {
     [navigate]
   );
 
-  const orderNow = async () => {
-    let productList = [];
+  useEffect(() => {
+    let tempList = [];
     cartItems.forEach((item) => {
-      productList.push({
+      tempList.push({
         product_id: item.product.product_id,
         seller_id: item.product.seller_id,
         quantity: item.quantity,
         price: item.product.price,
       });
     });
-    try {
-      const res = await axios.post("/api/user/product/purchase-now", {
-        productList: productList,
-        userAddress: chosenAddress,
-      });
-      console.log(res);
-      toast.success(res.data.message);
-    } catch (err) {
-      toast.error(err.response.data.message);
-    }
-  };
+    setProductList(tempList);
+  }, [cartItems]);
 
   async function handleDelete(itemId) {
     try {
@@ -59,12 +54,6 @@ function Cart() {
     setChoosenAddress(addressId);
   };
 
-  const safeCartItems = Array.isArray(cartItems) ? cartItems : [];
-  const totalAmount = safeCartItems.reduce(
-    (total, item) => total + item.product.price * item.quantity,
-    0
-  );
-
   //loggin fetching error just in case
   if (userAddressError || cartError)
     console.log(
@@ -78,6 +67,11 @@ function Cart() {
   }
   return (
     <>
+      {paymentLoader && (
+        <div className="fixed z-50">
+          <SubLoader />
+        </div>
+      )}
       <Navbar />
       <div className="p-4 bg-gradient-to-r from-slate-50 to-slate-100">
         <Toaster />
@@ -182,23 +176,11 @@ function Cart() {
                 )}
               </div>
 
-              {/* Total Price and Order Button */}
-              <div className="bg-white shadow-md rounded-lg p-4 border border-gray-300">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-lg font-semibold text-gray-900">
-                    Total Price:
-                  </span>
-                  <span className="text-xl font-bold text-gray-900">
-                    ₹{totalAmount}
-                  </span>
-                </div>
-                <button
-                  onClick={orderNow}
-                  className="w-full bg-slate-600 text-white py-2 rounded-lg font-semibold hover:bg-slate-700"
-                >
-                  Order Now
-                </button>
-              </div>
+              <PaymentCard
+                chosenAddress={chosenAddress}
+                productList={productList}
+                setPaymentLoader={setPaymentLoader}
+              />
             </>
           ) : (
             <div className="flex justify-center items-center h-64 bg-white shadow-md rounded-lg border border-gray-300">

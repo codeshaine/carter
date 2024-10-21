@@ -4,7 +4,7 @@ import {
   Route,
   RouterProvider,
 } from "react-router-dom";
-import axios from "axios"; // Import axios library
+import axios from "axios";
 import "./index.css";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
@@ -24,6 +24,12 @@ import { AuthProvider } from "./context/AuthContext";
 import ProtectedUserRoute from "./routes/ProtectedUserRoute";
 import ProtectedSellerRoutes from "./routes/ProtectedSellerRoutes";
 import GlobalError from "./pages/GlobalError";
+
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PK);
+
 function App() {
   axios.defaults.withCredentials = true;
   axios.defaults.baseURL = import.meta.env.VITE_BACKEND_API_URL;
@@ -37,17 +43,20 @@ function App() {
         <Route path="user" element={<ProtectedUserRoute />}>
           <Route key="userProfile" path="profile" element={<UserProfile />} />
           <Route key="myOrders" path="my-orders" element={<MyOrders />} />
-          <Route
-            key="buynow"
-            path="buy-now/:slugId/:qty"
-            element={<BuyNow />}
-          />
-          <Route key="mycart" path="my-cart" element={<Cart />} />
+
           <Route
             key="manageAddresses"
             path="manage-addresses"
             element={<ManageAddress />}
           />
+          {/* <Route path="" element={<StripeProvider />}> */}
+          <Route key="mycart" path="my-cart" element={<Cart />} />
+          <Route
+            key="buynow"
+            path="buy-now/:slugId/:qty"
+            element={<BuyNow />}
+          />
+          {/* </Route> */}
         </Route>
 
         {/********************************** seller routes **************************************/}
@@ -88,7 +97,9 @@ function App() {
 
   return (
     <AuthProvider>
-      <RouterProvider router={router} />
+      <Elements stripe={stripePromise}>
+        <RouterProvider router={router} />
+      </Elements>
     </AuthProvider>
   );
 }
