@@ -49,14 +49,12 @@ function App() {
             path="manage-addresses"
             element={<ManageAddress />}
           />
-          {/* <Route path="" element={<StripeProvider />}> */}
           <Route key="mycart" path="my-cart" element={<Cart />} />
           <Route
             key="buynow"
             path="buy-now/:slugId/:qty"
             element={<BuyNow />}
           />
-          {/* </Route> */}
         </Route>
 
         {/********************************** seller routes **************************************/}

@@ -60,7 +60,7 @@ function ProductList() {
 
   //setting page limit
   useEffect(() => {
-    setTotalPageNumber(Math.ceil(products.tp / limit));
+    setTotalPageNumber(Math.ceil(products.tp / limit) || 1);
   }, [products]);
 
   //fetching data when applying and clearing filter

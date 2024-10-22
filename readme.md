@@ -14,7 +14,7 @@
 
 ### Seller Features
 
-- **Seller Dashboard**: Manage products through dedicated seller dashboard.
+- **Seller Dashboard**: Manage products through a dedicated seller dashboard.
 - **Add New Products**: Effortlessly list new products for sale with detailed descriptions and pricing.
 - **Manage Orders**: Sellers can manage customer orders.
 
@@ -27,7 +27,7 @@
 - **File Upload**: Support for image/file uploads to third-party cloud storage.
 - **Zod**: For type validation and error handling.
 - **Password Encryption**: Ensured user data security by encrypting passwords.
-- **Stripe Payment Integration** : User can make Online Payment via Card
+- **Stripe Payment Integration**: Users can make online payments via card.
 
 ## Frontend
 
@@ -36,7 +36,7 @@
 - **React Router**: For seamless navigation between different pages.
 - **Global State Management**: Managed application state using React Context.
 - **Custom Hooks**: Leveraged hooks for cleaner and more refactored code.
-- **Stripe Payment Integration** : Used stripe readct component for the stripe integration
+- **Stripe Payment Integration**: Used Stripe React component for the integration.
 
 ## Learning Outcomes
 
@@ -44,10 +44,43 @@
 - Implemented caching and optimized performance using Redis.
 - Integrated OAuth with Passport.js.
 - Strengthened frontend skills with React and custom hooks.
-- Learnt Payment Gateway integration and How to deal with online payment
+- Learned payment gateway integration and how to deal with online payments.
+- Used Docker effectively to containerize the entire application, streamlining development and deployment.
+
+## How to Run the Program
+
+1. **Clone the Repository**:
+
+   ```bash
+   git clone https://github.com/your-repository-link
+   cd carter
+   ```
+
+2. **Set Up Environment Variables**:
+
+   - Use the provided `.env.example` files for both `client` and `server`.
+
+3. **Run with Docker Compose**:
+
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **Access the Application**:
+
+   - Frontend: `http://localhost:3000`
+   - Backend API: `http://localhost:8080`
+
+5. **Stop the Application**:
+   ```bash
+   docker-compose down
+   ```
+
+---
 
 <!-- ## TODO
 
+- Bug Major: when there is no product the next button will go to  next in product list page
 - Improve Unify the purchase route
 - Feature: Payment gateway integration
 

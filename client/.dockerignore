@@ -1,0 +1,5 @@
+node_modules
+# .env  commenting  this part casue vite picks up environment varible as static so copying env during build wont matter much
+dist
+env.example
+.gitignore

@@ -38,7 +38,7 @@ const sessionConfig = {
 // sessionConfig.cookie.secure = process.env.NODE_ENV === "production";
 
 // middlewares
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(
   morgan(" :method :url :status :res[content-length] - :response-time ms")
 );
