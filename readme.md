@@ -60,16 +60,44 @@
 
    - Use the provided `.env.example` files for both `client` and `server`.
 
+3. **Run locally**
+
+- Client
+
+```bash
+
+cd client && npm run dev
+
+```
+
+- Server
+
+```bash
+
+cd server && npm run start
+
+```
+
+- Seed Data (seed if you want to see products)
+
+```bash
+
+cd server && npm run seed
+
+```
+
 3. **Run with Docker Compose**:
 
-   ```bash
-   docker-compose up --build
-   ```
+```bash
+docker-compose up --build
+```
 
 4. **Access the Application**:
 
    - Frontend: `http://localhost:3000`
    - Backend API: `http://localhost:8080`
+   - Default email: default@gmail.com
+   - Default password: 123456
 
 5. **Stop the Application**:
    ```bash
