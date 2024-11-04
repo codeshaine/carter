@@ -42,23 +42,27 @@ function NewProductRegister() {
                 name="name"
                 placeholder="Product Name"
                 className="w-full text-sm text-gray-900 border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-slate-300"
+                labelName="Product Name"
               />
               <Input
                 name="subName"
                 placeholder="Sub Name"
                 className="w-full text-sm text-gray-900 border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-slate-300"
+                labelName="Sub Name"
               />
               <Input
                 name="price"
                 placeholder="Price"
                 type="number"
                 className="w-full text-sm text-gray-900 border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-slate-300"
+                labelName="Price"
               />
               <Input
                 name="stock"
                 placeholder="Stock"
                 type="number"
                 className="w-full text-sm text-gray-900 border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-slate-300"
+                labelName="Stock"
               />
 
               <div className="col-span-1 md:col-span-2">

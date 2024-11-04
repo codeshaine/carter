@@ -1,4 +1,5 @@
 import prismaClient from "../../clients/prismaClient.js";
+import redisCleint from "../../clients/redisCleint.js";
 import {
   ApiError,
   ApiResponse,
@@ -42,6 +43,9 @@ export async function handleSellerSignup(req, res) {
           isSeller: true,
         },
       });
+      //deleting the user auth cache
+      const CACHE_KEY = "user:check_user_auth_with_seller:" + req.user.user_id;
+      redisCleint.del(CACHE_KEY);
 
       return res
         .status(201)

@@ -81,6 +81,8 @@ const PaymentCard = ({ productList, chosenAddress, setPaymentLoader }) => {
     } catch (error) {
       console.error("Error creating payment intent:", error);
       toast.error("Failed to initiate payment");
+    } finally {
+      setPaymentLoader(false);
     }
   };
 
