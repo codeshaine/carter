@@ -100,9 +100,12 @@ docker-compose up --build
    - Default password: 123456
 
 5. **Stop the Application**:
+
    ```bash
    docker-compose down
    ```
+
+Want to know more about the story behind Carter? Check out my <strong> [detailed blog post](https://codeshaine.hashnode.dev/carter-an-typical-e-commerce-project) </strong> where I share my journey, challenges, and lessons learned while building this project.
 
 ---
 
