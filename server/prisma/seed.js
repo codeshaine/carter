@@ -29,6 +29,7 @@ const main = async () => {
       seller_logo_url: "https://example.com/logo.jpg",
       seller_address: "1234 Elm St",
       seller_contact_number: "1234567890",
+      seller_url: "www.sellerx.com",
       seller_email: "default.seller@example.com",
       user_id: user.user_id,
     },

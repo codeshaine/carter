@@ -84,17 +84,17 @@ function ProductList() {
       <Navbar />
 
       {/* Filter Section */}
-      <div className="container mx-auto px-6 py-4 flex flex-wrap justify-between items-center space-y-4 md:space-y-0">
-        <div className="flex space-x-4">
+      <div className="container mx-auto lg:px-6 lg:py-4 px-3 py-2  flex lg:text-lg text-sm  flex-wrap justify-between items-center space-y-4 md:space-y-0">
+        <div className="flex lg:space-x-4 space-x-2">
           {/* Category Filter */}
-          <div className="relative w-48">
+          <div className="relative lg:w-48 w-24">
             <label className=" text-gray-800 font-semibold mb-2 flex items-center">
-              <FaFilter className="mr-2" /> Category
+              <FaFilter className="lg:mr-2 mr-1" /> Category
             </label>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full border border-slate-300 rounded-full p-2 pl-4 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+              className=" w-full border border-slate-300  rounded-full p-2 pl-4 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
             >
               <option value="">All Categories</option>
               <option value="Electronics">Electronics</option>
@@ -147,7 +147,7 @@ function ProductList() {
             />
           </div>
         </div>
-        <div className="flex gap-4">
+        <div className="flex lg:gap-4 gap-2">
           {/* Apply Filters Button */}
           <button
             onClick={handleApplyFilter}
@@ -168,7 +168,7 @@ function ProductList() {
       {productLoading ? (
         <Loader />
       ) : (
-        <div className="container mx-auto p-6 bg-gradient-to-r from-white to-slate-200 min-h-screen my-4">
+        <div className="container mx-auto p-6 bg-gradient-to-r from-white to-slate-200  my-4">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-800 mb-4">
               Search Results for &quot;

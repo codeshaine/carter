@@ -95,7 +95,7 @@ function ManageMyProducts() {
                     Stock: {product.stock}
                   </p>
                 </div>
-                <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
+                <div className="flex gap-2">
                   <button
                     disabled={loading}
                     className="bg-slate-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-slate-700 focus:outline-none focus:ring focus:ring-slate-300"

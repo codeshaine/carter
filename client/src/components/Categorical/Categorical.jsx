@@ -30,7 +30,7 @@ const categories = [
 
 function Categorical() {
   return (
-    <div className="bg-gradient-to-r from-white to-slate-100 py-16">
+    <div className="bg-gradient-to-r from-white mt-96 lg:mt-0 to-slate-100 py-16">
       <div className="container mx-auto px-8">
         <h2 className="text-4xl font-extrabold text-gray-800 mb-12 text-center">
           Explore Our Categories

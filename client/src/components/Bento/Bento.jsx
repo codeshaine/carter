@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 function Bento() {
   return (
-    <div className="container mx-auto px-4 py-16">
+    <div className="container mx-auto px-4 lg:py-16 py-8">
       <div className="flex flex-col md:flex-row gap-6 h-96">
         {/* Large Card */}
         <div className="flex-1 bg-white shadow-lg rounded-lg overflow-hidden relative ">
@@ -20,7 +20,7 @@ function Bento() {
         </div>
 
         {/* Right Side Container for Small Cards */}
-        <div className="flex flex-col gap-6 flex-1">
+        <div className="flex flex-col gap-4 lg:gap-6 flex-1">
           {/* Small Card 1 */}
           <Link
             // to="/promotion"

@@ -7,7 +7,7 @@ const baseSellerSchema = z.object({
   seller_contact_number: z
     .string()
     .regex(/^[0-9]{10}$/, "Phone number must be exactly 10 digits"),
-  seller_url: z.string().url("Invalid seller URL").optional(),
+  seller_url: z.string().url("Invalid seller URL").optional().or(z.literal("")),
   seller_email: z.string().email("Invalid email").optional(),
   seller_bio: z
     .string()

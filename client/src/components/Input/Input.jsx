@@ -14,7 +14,7 @@ function Input({
         name={name}
         id=""
         placeholder={placeholder}
-        className="lg:text-lg text-sm border border-black-100 p-1 lg:p-2"
+        className="lg:text-lg text-sm w-full border border-black-100 p-1 lg:p-2"
       />
     </div>
   );
