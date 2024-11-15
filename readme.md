@@ -66,7 +66,8 @@
 
 ```bash
 
-cd client && npm run dev
+cd client 
+npm i&&npm run dev
 
 ```
 
@@ -74,7 +75,10 @@ cd client && npm run dev
 
 ```bash
 
-cd server && npm run start
+cd server 
+npm i 
+npx prisma migrate deploy
+npm run start
 
 ```
 
