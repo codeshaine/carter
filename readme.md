@@ -111,15 +111,11 @@ docker-compose up --build
    docker-compose down
    ```
 
-## preview:
+## Preview:
 
-<div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 10px;">
-
-  <img src="./preview/home.png" width="60%" />
-  <img src="./preview/product.png" width="45%" />
-  <img src="./preview/list.png" width="45%" />
-
-</div>
+  <img src="./preview/home.png" width="70%" />
+  <img src="./preview/product.png" width="70%" />
+  <img src="./preview/list.png" width="70%" />
 
 <br>
 Want to know more about the story behind Carter? Check out my <strong> [detailed blog post](https://codeshaine.bearblog.dev/carter-an-typical-e-commerce-project/) </strong> where I share my journey, challenges, and lessons learned while building this project.
