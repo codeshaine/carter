@@ -2,7 +2,7 @@
 
 **Carter** is a full-stack e-commerce platform that allows users not only to purchase products but also to sell them effortlessly. It provides a seamless experience for both buyers and sellers with robust management tools and functionality.
 
-### [Preview](#preview)
+[Preview](#preview)
 
 ## Features:
 
@@ -113,15 +113,15 @@ docker-compose up --build
 
 ## preview:
 
-<div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px;">
+<div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 10px;">
 
-<img src="./preview/home.png" width="60%"/>
-<img src="./preview/product.png" width="45%"/>
-<img src="./preview/list.png" width="45%"/>
+  <img src="./preview/home.png" width="60%" />
+  <img src="./preview/product.png" width="45%" />
+  <img src="./preview/list.png" width="45%" />
+
 </div>
 
-<br/>
-
+<br>
 Want to know more about the story behind Carter? Check out my <strong> [detailed blog post](https://codeshaine.bearblog.dev/carter-an-typical-e-commerce-project/) </strong> where I share my journey, challenges, and lessons learned while building this project.
 
 ---
