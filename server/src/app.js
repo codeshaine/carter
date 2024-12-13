@@ -25,9 +25,9 @@ const sessionConfig = {
   saveUninitialized: false,
   cookie: {
     //TODO turn this on in production
-    // secure: true,  for production
+    secure: true, 
     sameSite: "None", 
-    // httpOnly: true,
+    httpOnly: true,
     maxAge: 30 * 60 * 1000, //30 minutes in miliseconds for cookies
   },
   name: "session-cookie",
