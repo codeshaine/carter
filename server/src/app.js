@@ -26,7 +26,7 @@ const sessionConfig = {
   cookie: {
     //TODO turn this on in production
     // secure: true,  for production
-    // sameSite: "None", for production
+    sameSite: "None", 
     // httpOnly: true,
     maxAge: 30 * 60 * 1000, //30 minutes in miliseconds for cookies
   },
