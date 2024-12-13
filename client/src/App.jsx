@@ -28,11 +28,11 @@ import GlobalError from "./pages/GlobalError";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PK);
+const stripePromise = loadStripe("pk_test_51QAvqm00g9VRghb1v0IbzQ3FGWjBYQf9pkSqsw2Q7oW0unOymv3aUob6dCIVfYXZtnOC9VKhYgSBNZdL9qrWSi4V00VM11rNyU");
 
 function App() {
   axios.defaults.withCredentials = true;
-  axios.defaults.baseURL = import.meta.env.VITE_BACKEND_API_URL;
+  axios.defaults.baseURL = "https://carter-me2x.onrender.com";
   const router = createBrowserRouter(
     createRoutesFromElements([
       <Route key="global" path="/">
