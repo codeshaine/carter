@@ -8,6 +8,7 @@ const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 // Checking the  connection establishment
 (async () => {
+
   try {
     redisClient.on("connect", () => {
       console.log("Connected to Redis successfully.");
@@ -26,6 +27,7 @@ process.on("SIGINT", async () => {
       "Disconnected from Redis after waiting for pending operations."
     );
   });
+
 
   await prismaClient.$disconnect();
   console.log("Redis and DB disconnected");
