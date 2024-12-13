@@ -47,7 +47,7 @@ function UserAddressForm() {
   return (
     <>
       <Navbar />
-      <div className="py-4 bg-gradient-to-r from-slate-50 to-slate-100 p-6">
+      <div className="py-4 p-6">
         <Toaster />
         <div className="max-w-screen-xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Form Section */}

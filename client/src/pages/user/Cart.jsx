@@ -73,7 +73,7 @@ function Cart() {
         </div>
       )}
       <Navbar />
-      <div className="p-4 bg-gradient-to-r from-slate-50 to-slate-100">
+      <div className="p-4 ">
         <Toaster />
         <div className="max-w-6xl mx-auto">
           {/* Cart Items */}

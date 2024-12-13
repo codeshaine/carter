@@ -24,16 +24,16 @@ const Footer = memo(function Footer() {
           </h3>
           <ul className="text-gray-600 space-y-2">
             <li>
-              <Link to="/about">About Us</Link>
+              <Link to="#">About Us</Link>
             </li>
             <li>
-              <Link to="/contact">Contact Us</Link>
+              <Link to="#">Contact Us</Link>
             </li>
             <li>
-              <Link to="/terms">Terms of Service</Link>
+              <Link to="#">Terms of Service</Link>
             </li>
             <li>
-              <Link to="/privacy">Privacy Policy</Link>
+              <Link to="#">Privacy Policy</Link>
             </li>
           </ul>
         </div>
@@ -45,16 +45,16 @@ const Footer = memo(function Footer() {
           </h3>
           <ul className="text-gray-600 space-y-2">
             <li>
-              <Link to="/faq">FAQ</Link>
+              <Link to="#">FAQ</Link>
             </li>
             <li>
-              <Link to="/returns">Return Policy</Link>
+              <Link to="#">Return Policy</Link>
             </li>
             <li>
-              <Link to="/shipping">Shipping Information</Link>
+              <Link to="#">Shipping Information</Link>
             </li>
             <li>
-              <Link to="/support">Support</Link>
+              <Link to="#">Support</Link>
             </li>
           </ul>
         </div>

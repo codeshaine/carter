@@ -168,7 +168,7 @@ function ProductList() {
       {productLoading ? (
         <Loader />
       ) : (
-        <div className="container mx-auto p-6 bg-gradient-to-r from-white to-slate-200  my-4">
+        <div className="container mx-auto p-6 bg-gradient-to-r  my-4">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-800 mb-4">
               Search Results for &quot;

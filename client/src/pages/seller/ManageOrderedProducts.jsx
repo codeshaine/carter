@@ -55,7 +55,7 @@ function ManageOrderedProducts() {
       <Navbar />
       <Toaster />
 
-      <div className="p-4  bg-gray-100">
+      <div className="p-4">
         <h1 className="text-center font-bold text-3xl  mb-6 text-gray-800">
           Our Orders
         </h1>

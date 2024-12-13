@@ -30,7 +30,7 @@ function NewProductRegister() {
       )}
       <Navbar />
 
-      <div className="py-4 min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="py-4 min-h-screen flex items-center justify-center">
         <div className="w-full max-w-3xl bg-white shadow-md rounded-lg p-8">
           <Toaster />
           <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">

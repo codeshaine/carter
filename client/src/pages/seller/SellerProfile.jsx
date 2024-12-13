@@ -66,7 +66,7 @@ function SellerProfile() {
       )}
       <Navbar />
       <Toaster />
-      <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-gray-100 to-white p-6">
+      <div className="flex justify-center items-center min-h-screen p-6">
         <div className="bg-white shadow-lg rounded-lg max-w-5xl w-full p-8">
           <div className="flex flex-col items-center mb-8">
             <div className="relative mb-6">

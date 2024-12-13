@@ -59,7 +59,7 @@ function BuyNow() {
       )}
       <Navbar />
       <Toaster />
-      <div className="my-4 max-w-4xl mx-auto p-6 bg-gray-100">
+      <div className="my-4 max-w-4xl mx-auto p-6 ">
         <h1 className="text-4xl font-extrabold mb-8 text-slate-900">Buy Now</h1>
         {/* product detail */}
         <div className="bg-white shadow-md rounded-lg overflow-hidden mb-8">

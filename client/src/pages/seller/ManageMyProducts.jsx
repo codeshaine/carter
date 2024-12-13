@@ -62,7 +62,7 @@ function ManageMyProducts() {
         </div>
       )}
       <Navbar />
-      <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
+      <div className="min-h-screen  flex flex-col items-center p-4">
         <Toaster />
         <h1 className="text-3xl font-bold mb-6 text-gray-800">My Products</h1>
         <div className="w-full max-w-4xl space-y-4">

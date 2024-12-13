@@ -41,7 +41,7 @@ function MyOrders() {
         <Toaster />
       </div>
 
-      <div className="p-6 my-4 bg-gray-100">
+      <div className="p-6 my-4 ">
         <div className="space-y-6">
           {orderedItems.length > 0 ? (
             orderedItems.map((item) => (

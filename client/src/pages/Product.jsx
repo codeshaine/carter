@@ -83,7 +83,7 @@ function Product() {
         </div>
       )}
       <Navbar />
-      <div className="my-4 container mx-auto p-6 bg-gradient-to-r from-gray-100 to-gray-300">
+      <div className="my-4 container mx-auto p-6 bg-gradient-to-r ">
         <Toaster />
         <div className="flex flex-col lg:flex-row bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="lg:w-1/2 p-6">
