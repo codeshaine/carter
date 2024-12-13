@@ -62,7 +62,7 @@ export default function Auth() {
 
   async function loginWithGoogle() {
     window.open(
-      `${import.meta.env.VITE_BACKEND_API_URL}/api/user/auth/google`,
+      `https://carter-1.onrender.com/api/user/auth/google`,
       "_self"
     );
   }
