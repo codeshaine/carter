@@ -27,9 +27,9 @@ const sessionConfig = {
   saveUninitialized: false,
   cookie: {
     //TODO turn this on in production
-    secure: true, 
-    sameSite: "None", 
-    httpOnly: true,
+    secure: process.env.NODE_ENV === "production" ? true : false,
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
+    httpOnly: process.env.NODE_ENV === "production" ? true : false,
     maxAge: 30 * 60 * 1000, //30 minutes in miliseconds for cookies
   },
   name: "session-cookie",
@@ -40,7 +40,15 @@ const sessionConfig = {
 // sessionConfig.cookie.secure = process.env.NODE_ENV === "production";
 
 // middlewares
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(
+  cors({
+    origin: [process.env.CLIENT_URL, "http://localhost:3000"],
+    credentials: true,
+    allowedHeaders: "Content-Type,Authorization",
+    methods: "GET,POST,DELETE,PUT,PATCH",
+  })
+);
+
 app.use(
   morgan(" :method :url :status :res[content-length] - :response-time ms")
 );
