@@ -4,6 +4,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import { AuthContext } from "../context/AuthContext";
+import { BASE_URL } from "../App";
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -62,7 +63,8 @@ export default function Auth() {
 
   async function loginWithGoogle() {
     window.open(
-      `https://carter-1.onrender.com/api/user/auth/google`,
+     
+      ` ${BASE_URL}/api/user/auth/google`,
       "_self"
     );
   }

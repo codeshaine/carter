@@ -29,10 +29,10 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
 const stripePromise = loadStripe("pk_test_51QAvqm00g9VRghb1v0IbzQ3FGWjBYQf9pkSqsw2Q7oW0unOymv3aUob6dCIVfYXZtnOC9VKhYgSBNZdL9qrWSi4V00VM11rNyU");
-
+export const BASE_URL = "https://carter-h6ev.onrender.com";
 function App() {
   axios.defaults.withCredentials = true;
-  axios.defaults.baseURL = "https://carter-1.onrender.com";
+  axios.defaults.baseURL = BASE_URL;
   const router = createBrowserRouter(
     createRoutesFromElements([
       <Route key="global" path="/">
