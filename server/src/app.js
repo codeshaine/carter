@@ -12,6 +12,8 @@ import { unifySessionUser } from "./middlewares/unifySessionUser.js";
 import { userRouter } from "./routes/user.routes.js";
 import { sellerRoutes } from "./routes/seller.routes.js";
 import { productRoutes } from "./routes/product.routes.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 
